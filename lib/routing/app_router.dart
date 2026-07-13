@@ -5,6 +5,8 @@ import '../features/onboarding/screens/splash_screen.dart';
 import '../features/onboarding/screens/onboarding_screen.dart';
 import '../features/auth/screens/signup_screen.dart';
 import '../features/auth/screens/forgot_password_screen.dart';
+import '../features/flat/screens/create_flat_screen.dart';
+import '../features/flat/screens/flat_setup_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/splash',
@@ -39,5 +41,15 @@ GoRoute(
       name: 'home',
       builder: (context, state) => const HomeScreen(),
     ),
+    GoRoute(
+  path: '/flat-setup',
+  name: 'flat-setup',
+  builder: (context, state) => const FlatSetupScreen(),
+),
+GoRoute(
+  path: '/create-flat',
+  name: 'create-flat',
+  builder: (context, state) => const CreateFlatScreen(),
+),
   ],
 );

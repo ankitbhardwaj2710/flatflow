@@ -45,7 +45,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           );
 
       if (mounted) {
-        context.go('/home');
+        context.go('/flat-setup');
       }
     } on FirebaseAuthException catch (error) {
       if (!mounted) return;

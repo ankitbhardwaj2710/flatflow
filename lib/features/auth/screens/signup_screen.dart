@@ -50,7 +50,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
           );
 
       if (mounted) {
-        context.go('/home');
+        context.go('/flat-setup');
       }
     } on FirebaseAuthException catch (error) {
       if (!mounted) return;
