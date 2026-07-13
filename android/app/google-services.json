@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "673600511306",
+    "project_id": "flatflow-app",
+    "storage_bucket": "flatflow-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:673600511306:android:4015ae92ab2b6c9941b5b3",
+        "android_client_info": {
+          "package_name": "com.ankitbhardwaj.flatflow"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCX4sN9zPKMXXpcbGrUsl50CF5AMYmyn-Y"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
