@@ -14,6 +14,8 @@ import '../features/onboarding/screens/onboarding_screen.dart';
 import '../features/onboarding/screens/splash_screen.dart';
 import '../features/profile/screens/profile_screen.dart';
 import '../features/expenses/screens/add_expense_screen.dart';
+import '../features/expenses/screens/expense_details_screen.dart';
+import '../features/expenses/models/expense_model.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/splash',
@@ -62,6 +64,17 @@ GoRoute(
   path: '/add-expense',
   name: 'add-expense',
   builder: (context, state) => const AddExpenseScreen(),
+),
+GoRoute(
+  path: '/expense-details',
+  name: 'expense-details',
+  builder: (context, state) {
+    final expense = state.extra as ExpenseModel;
+
+    return ExpenseDetailsScreen(
+      expense: expense,
+    );
+  },
 ),
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {

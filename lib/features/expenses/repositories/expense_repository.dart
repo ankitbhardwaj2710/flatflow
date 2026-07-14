@@ -11,7 +11,54 @@ class ExpenseRepository {
     this._firestore,
     this._firebaseAuth,
   );
+Future<void> deleteExpense(String expenseId) async {
+  final user = _firebaseAuth.currentUser;
 
+  if (user == null) {
+    throw Exception('User is not signed in.');
+  }
+
+  final flatId = await _getCurrentFlatId();
+
+  final expenseReference = _firestore
+      .collection('flats')
+      .doc(flatId)
+      .collection('expenses')
+      .doc(expenseId);
+
+  final expenseDocument = await expenseReference.get();
+
+  if (!expenseDocument.exists) {
+    throw Exception('Expense not found.');
+  }
+
+  final expenseData = expenseDocument.data()!;
+
+  final createdBy = expenseData['createdBy'] as String?;
+  final paidBy = expenseData['paidBy'] as String?;
+
+  final memberDocument = await _firestore
+      .collection('flats')
+      .doc(flatId)
+      .collection('members')
+      .doc(user.uid)
+      .get();
+
+  final role = memberDocument.data()?['role'] as String?;
+
+  final canDelete =
+      createdBy == user.uid ||
+      paidBy == user.uid ||
+      role == 'admin';
+
+  if (!canDelete) {
+    throw Exception(
+      'You do not have permission to delete this expense.',
+    );
+  }
+
+  await expenseReference.delete();
+}
   Future<String> _getCurrentFlatId() async {
     final user = _firebaseAuth.currentUser;
 
