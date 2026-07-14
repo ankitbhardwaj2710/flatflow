@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_colors.dart';
 import '../providers/home_provider.dart';
 import '../../expenses/providers/expense_provider.dart';
+import '../../expenses/models/member_balance.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -15,7 +16,7 @@ class HomeScreen extends ConsumerWidget {
     final currentFlat = ref.watch(currentFlatProvider);
     final members = ref.watch(currentFlatMembersProvider);
     final expenseSummary = ref.watch(expenseSummaryProvider);
-
+    final memberBalances = ref.watch(memberBalancesProvider);
     return Scaffold(
       body: SafeArea(
         child: userDocument.when(
@@ -103,7 +104,20 @@ class HomeScreen extends ConsumerWidget {
                             ),
                           ],
                         ),
+                        const SizedBox(height: 28),
 
+                        Text(
+                          'Balances',
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.w800),
+                        ),
+
+                        const SizedBox(height: 14),
+
+                        if (memberBalances.isEmpty)
+                          const _SettledBalanceCard()
+                        else
+                          _MemberBalancesCard(balances: memberBalances),
                         const SizedBox(height: 28),
 
                         Text(
@@ -456,6 +470,88 @@ class _MembersCard extends StatelessWidget {
             subtitle: Text(role == 'admin' ? 'Admin' : 'Member'),
           );
         },
+      ),
+    );
+  }
+}
+
+class _MemberBalancesCard extends StatelessWidget {
+  final List<MemberBalance> balances;
+
+  const _MemberBalancesCard({required this.balances});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        children: List.generate(balances.length, (index) {
+          final balance = balances[index];
+          final isLast = index == balances.length - 1;
+
+          return Column(
+            children: [
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 6,
+                ),
+                leading: CircleAvatar(
+                  child: Text(
+                    balance.memberName.isNotEmpty
+                        ? balance.memberName[0].toUpperCase()
+                        : '?',
+                  ),
+                ),
+                title: Text(
+                  balance.memberName,
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                subtitle: Text(balance.owesYou ? 'owes you' : 'you owe'),
+                trailing: Text(
+                  _formatCurrency(balance.amount.abs()),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: balance.owesYou ? Colors.green : Colors.orange,
+                  ),
+                ),
+              ),
+              if (!isLast) const Divider(height: 1),
+            ],
+          );
+        }),
+      ),
+    );
+  }
+}
+
+class _SettledBalanceCard extends StatelessWidget {
+  const _SettledBalanceCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: const Row(
+        children: [
+          Icon(Icons.check_circle_outline_rounded, color: Colors.green),
+          SizedBox(width: 14),
+          Expanded(
+            child: Text(
+              'Everyone is settled up.',
+              style: TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
       ),
     );
   }
