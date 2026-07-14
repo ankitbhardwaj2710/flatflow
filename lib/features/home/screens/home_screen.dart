@@ -6,6 +6,7 @@ import '../../../core/theme/app_colors.dart';
 import '../providers/home_provider.dart';
 import '../../expenses/providers/expense_provider.dart';
 import '../../expenses/models/member_balance.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -475,10 +476,102 @@ class _MembersCard extends StatelessWidget {
   }
 }
 
-class _MemberBalancesCard extends StatelessWidget {
+class _MemberBalancesCard extends ConsumerStatefulWidget {
   final List<MemberBalance> balances;
 
   const _MemberBalancesCard({required this.balances});
+
+  @override
+  ConsumerState<_MemberBalancesCard> createState() =>
+      _MemberBalancesCardState();
+}
+
+class _MemberBalancesCardState extends ConsumerState<_MemberBalancesCard> {
+  String? _processingMemberId;
+
+  Future<void> _settleUp(MemberBalance balance) async {
+    final currentUser = FirebaseAuth.instance.currentUser;
+
+    if (currentUser == null) {
+      return;
+    }
+
+    final amount = balance.amount.abs();
+
+    // Positive balance:
+    // Other member owes the current user.
+    final paidBy = balance.owesYou ? balance.memberId : currentUser.uid;
+
+    final paidTo = balance.owesYou ? currentUser.uid : balance.memberId;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Confirm settlement'),
+          content: Text(
+            balance.owesYou
+                ? '${balance.memberName} paid you '
+                      '${_formatCurrency(amount)}?'
+                : 'You paid ${balance.memberName} '
+                      '${_formatCurrency(amount)}?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(false);
+              },
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop(true);
+              },
+              child: const Text('Confirm'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed != true || !mounted) {
+      return;
+    }
+
+    setState(() {
+      _processingMemberId = balance.memberId;
+    });
+
+    try {
+      await ref
+          .read(expenseRepositoryProvider)
+          .addSettlement(paidBy: paidBy, paidTo: paidTo, amount: amount);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Settlement recorded successfully.')),
+      );
+    } catch (error) {
+      if (!mounted) return;
+
+      String message = error.toString();
+
+      if (message.startsWith('Exception: ')) {
+        message = message.replaceFirst('Exception: ', '');
+      }
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+    } finally {
+      if (mounted) {
+        setState(() {
+          _processingMemberId = null;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -488,36 +581,75 @@ class _MemberBalancesCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
-        children: List.generate(balances.length, (index) {
-          final balance = balances[index];
-          final isLast = index == balances.length - 1;
+        children: List.generate(widget.balances.length, (index) {
+          final balance = widget.balances[index];
+
+          final isLast = index == widget.balances.length - 1;
+
+          final isProcessing = _processingMemberId == balance.memberId;
 
           return Column(
             children: [
-              ListTile(
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 18,
-                  vertical: 6,
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
                 ),
-                leading: CircleAvatar(
-                  child: Text(
-                    balance.memberName.isNotEmpty
-                        ? balance.memberName[0].toUpperCase()
-                        : '?',
-                  ),
-                ),
-                title: Text(
-                  balance.memberName,
-                  style: const TextStyle(fontWeight: FontWeight.w700),
-                ),
-                subtitle: Text(balance.owesYou ? 'owes you' : 'you owe'),
-                trailing: Text(
-                  _formatCurrency(balance.amount.abs()),
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    color: balance.owesYou ? Colors.green : Colors.orange,
-                  ),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      child: Text(
+                        balance.memberName.isNotEmpty
+                            ? balance.memberName[0].toUpperCase()
+                            : '?',
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            balance.memberName,
+                            style: const TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            balance.owesYou
+                                ? 'owes you ${_formatCurrency(balance.amount.abs())}'
+                                : 'you owe ${_formatCurrency(balance.amount.abs())}',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: balance.owesYou
+                                  ? Colors.green
+                                  : Colors.orange,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    SizedBox(
+                      height: 38,
+                      child: FilledButton.tonal(
+                        onPressed: isProcessing
+                            ? null
+                            : () {
+                                _settleUp(balance);
+                              },
+                        child: isProcessing
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text('Settle Up'),
+                      ),
+                    ),
+                  ],
                 ),
               ),
               if (!isLast) const Divider(height: 1),
