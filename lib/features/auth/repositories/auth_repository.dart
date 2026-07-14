@@ -42,7 +42,24 @@ class AuthRepository {
 
     return credential;
   }
+Future<String?> getCurrentFlatId() async {
+  final user = _firebaseAuth.currentUser;
 
+  if (user == null) {
+    return null;
+  }
+
+  final userDocument =
+      await _firestore.collection('users').doc(user.uid).get();
+
+  if (!userDocument.exists) {
+    return null;
+  }
+
+  final data = userDocument.data();
+
+  return data?['currentFlatId'] as String?;
+}
   Future<UserCredential> signIn({
     required String email,
     required String password,

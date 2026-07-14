@@ -93,7 +93,77 @@ class FlatRepository {
 
     throw Exception('Unable to generate a unique invite code.');
   }
+Future<String> joinFlat({
+  required String inviteCode,
+}) async {
+  final user = _firebaseAuth.currentUser;
 
+  if (user == null) {
+    throw Exception('User is not signed in.');
+  }
+
+  final code = inviteCode.trim().toUpperCase();
+
+  final flatQuery = await _firestore
+      .collection('flats')
+      .where('inviteCode', isEqualTo: code)
+      .limit(1)
+      .get();
+
+  if (flatQuery.docs.isEmpty) {
+    throw Exception('No flat found with this invite code.');
+  }
+
+  final flatDocument = flatQuery.docs.first;
+  final flatId = flatDocument.id;
+
+  final userDocument =
+      await _firestore.collection('users').doc(user.uid).get();
+
+  if (!userDocument.exists) {
+    throw Exception('User profile not found.');
+  }
+
+  final userData = userDocument.data()!;
+  final userName = userData['name'] as String? ?? 'User';
+  final userEmail = userData['email'] as String? ?? user.email ?? '';
+
+  final memberReference = _firestore
+      .collection('flats')
+      .doc(flatId)
+      .collection('members')
+      .doc(user.uid);
+
+  final existingMember = await memberReference.get();
+
+  if (existingMember.exists) {
+    throw Exception('You are already a member of this flat.');
+  }
+
+  final batch = _firestore.batch();
+
+  batch.set(
+    memberReference,
+    {
+      'userId': user.uid,
+      'name': userName,
+      'email': userEmail,
+      'role': 'member',
+      'joinedAt': FieldValue.serverTimestamp(),
+    },
+  );
+
+  batch.update(
+    _firestore.collection('users').doc(user.uid),
+    {
+      'currentFlatId': flatId,
+    },
+  );
+
+  await batch.commit();
+
+  return flatId;
+}
   Future<FlatModel?> getFlat(String flatId) async {
     final document =
         await _firestore.collection('flats').doc(flatId).get();

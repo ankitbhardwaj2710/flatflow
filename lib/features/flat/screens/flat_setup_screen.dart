@@ -71,9 +71,7 @@ class FlatSetupScreen extends StatelessWidget {
                 width: double.infinity,
                 height: 56,
                 child: OutlinedButton.icon(
-                  onPressed: () {
-                    // Join Flat screen next step me banayenge.
-                  },
+                  onPressed: () => context.push('/join-flat'),
                   icon: const Icon(Icons.group_add_rounded),
                   label: const Text(
                     'Join with Invite Code',

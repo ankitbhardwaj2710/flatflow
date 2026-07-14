@@ -40,13 +40,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     try {
       await ref.read(authRepositoryProvider).signIn(
-            email: _emailController.text,
-            password: _passwordController.text,
-          );
+      email: _emailController.text,
+      password: _passwordController.text,
+    );
 
-      if (mounted) {
-        context.go('/flat-setup');
-      }
+final currentFlatId =
+    await ref.read(authRepositoryProvider).getCurrentFlatId();
+
+if (!mounted) return;
+
+if (currentFlatId == null || currentFlatId.isEmpty) {
+  context.go('/flat-setup');
+} else {
+  context.go('/home');
+}
     } on FirebaseAuthException catch (error) {
       if (!mounted) return;
 

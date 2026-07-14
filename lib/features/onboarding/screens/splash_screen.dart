@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_colors.dart';
 
@@ -44,10 +44,16 @@ class _SplashScreenState extends State<SplashScreen>
     _animationController.forward();
 
     Future.delayed(const Duration(seconds: 3), () {
-      if (mounted) {
-        context.go('/onboarding');
-      }
-    });
+  if (!mounted) return;
+
+  final user = FirebaseAuth.instance.currentUser;
+
+  if (user == null) {
+    context.go('/onboarding');
+  } else {
+    context.go('/home');
+  }
+});
   }
 
   @override
