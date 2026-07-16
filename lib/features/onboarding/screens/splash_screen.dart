@@ -3,7 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_colors.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -43,15 +43,42 @@ class _SplashScreenState extends State<SplashScreen>
 
     _animationController.forward();
 
-    Future.delayed(const Duration(seconds: 3), () {
+    Future.delayed(const Duration(seconds: 3), () async {
   if (!mounted) return;
 
   final user = FirebaseAuth.instance.currentUser;
 
   if (user == null) {
     context.go('/onboarding');
-  } else {
-    context.go('/home');
+    return;
+  }
+
+  try {
+    final userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+
+    if (!mounted) return;
+
+    if (!userDoc.exists) {
+      context.go('/onboarding');
+      return;
+    }
+
+    final currentFlatId =
+        userDoc.data()?['currentFlatId'] as String?;
+
+    if (currentFlatId == null ||
+        currentFlatId.isEmpty) {
+      context.go('/flat-setup');
+    } else {
+      context.go('/home');
+    }
+  } catch (_) {
+    if (!mounted) return;
+
+    context.go('/onboarding');
   }
 });
   }
