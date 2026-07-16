@@ -398,11 +398,7 @@ class ProfileScreen extends ConsumerWidget {
                   title: 'Flat settings',
                   subtitle: 'Manage your shared flat',
                   onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Flat settings are coming next.'),
-                      ),
-                    );
+                    context.push('/flat-settings');
                   },
                 ),
               ],

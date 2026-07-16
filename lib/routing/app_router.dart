@@ -16,6 +16,7 @@ import '../features/profile/screens/profile_screen.dart';
 import '../features/expenses/screens/add_expense_screen.dart';
 import '../features/expenses/screens/expense_details_screen.dart';
 import '../features/expenses/models/expense_model.dart';
+import '../features/profile/screens/flat_settings_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/splash',
@@ -60,6 +61,11 @@ final GoRouter appRouter = GoRouter(
       name: 'join-flat',
       builder: (context, state) => const JoinFlatScreen(),
     ),
+    GoRoute(
+  path: '/flat-settings',
+  name: 'flat-settings',
+  builder: (context, state) => const FlatSettingsScreen(),
+),
 GoRoute(
   path: '/add-expense',
   name: 'add-expense',
