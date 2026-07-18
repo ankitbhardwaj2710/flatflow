@@ -170,7 +170,101 @@ class FlatSettingsScreen extends ConsumerWidget {
 
         return;
       }
-      // Remove member from flat
+      if (role == 'admin' && memberCount == 1) {
+  final shouldDelete = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) {
+      return AlertDialog(
+        title: const Text("Delete Flat"),
+        content: const Text(
+          "You are the last member of this flat.\n\n"
+          "Deleting the flat will permanently remove:\n\n"
+          "• All expenses\n"
+          "• Grocery list\n"
+          "• Settlements\n"
+          "• Members\n\n"
+          "This action cannot be undone.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(dialogContext, false);
+            },
+            child: const Text("Cancel"),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            onPressed: () {
+              Navigator.pop(dialogContext, true);
+            },
+            child: const Text("Delete Flat"),
+          ),
+        ],
+      );
+    },
+  );
+
+  if (shouldDelete != true) {
+    return;
+  } // Remove member from flat
+   
+   // Delete grocery
+final grocerySnapshot = await firestore
+    .collection('flats')
+    .doc(flatId)
+    .collection('grocery')
+    .get();
+
+for (final doc in grocerySnapshot.docs) {
+  await doc.reference.delete();
+}
+
+// Delete expenses
+final expenseSnapshot = await firestore
+    .collection('flats')
+    .doc(flatId)
+    .collection('expenses')
+    .get();
+
+for (final doc in expenseSnapshot.docs) {
+  await doc.reference.delete();
+}
+
+// Delete settlements
+final settlementSnapshot = await firestore
+    .collection('flats')
+    .doc(flatId)
+    .collection('settlements')
+    .get();
+
+for (final doc in settlementSnapshot.docs) {
+  await doc.reference.delete();
+}
+
+// Delete members
+final membersSnapshot = await firestore
+    .collection('flats')
+    .doc(flatId)
+    .collection('members')
+    .get();
+
+for (final doc in membersSnapshot.docs) {
+  await doc.reference.delete();
+}
+await firestore.collection('users').doc(user.uid).update({
+  'currentFlatId': null,
+});
+
+await firestore.collection('flats').doc(flatId).delete();
+
+if (!context.mounted) return;
+
+context.go('/flat-setup');
+
+return;
+}
       await firestore
           .collection('flats')
           .doc(flatId)
@@ -339,7 +433,7 @@ class FlatSettingsScreen extends ConsumerWidget {
                       .when(
                         loading: () =>
                             const Center(child: CircularProgressIndicator()),
-                        error: (_, __) => const SizedBox(),
+                        error: (_, _) => const SizedBox(),
                         data: (members) {
                           final currentUser = ref
                               .read(firebaseAuthProvider)
