@@ -4,7 +4,7 @@ import '../core/widgets/main_navigation_shell.dart';
 import '../features/auth/screens/forgot_password_screen.dart';
 import '../features/auth/screens/login_screen.dart';
 import '../features/auth/screens/signup_screen.dart';
-import '../features/expenses/screens/expenses_screen.dart';
+import '../features/expenses/widgets/expense_search_bar.dart';
 import '../features/flat/screens/create_flat_screen.dart';
 import '../features/flat/screens/flat_setup_screen.dart';
 import '../features/flat/screens/join_flat_screen.dart';

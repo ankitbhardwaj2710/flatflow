@@ -6,6 +6,8 @@ import 'package:intl/intl.dart';
 import '../../../core/theme/app_colors.dart';
 import '../models/expense_model.dart';
 import '../providers/expense_provider.dart';
+import '../providers/expense_filter_provider.dart';
+import '../widgets/expense_search_bar.dart';
 
 class ExpensesScreen extends ConsumerWidget {
   const ExpensesScreen({super.key});
@@ -13,34 +15,33 @@ class ExpensesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final expensesAsync = ref.watch(expensesProvider);
+    final filteredExpenses = ref.watch(filteredExpensesProvider);
 
     return Scaffold(
       appBar: AppBar(
         title: const Text(
           'Expenses',
-          style: TextStyle(
-            fontWeight: FontWeight.w800,
-          ),
+          style: TextStyle(fontWeight: FontWeight.w800),
         ),
       ),
       body: expensesAsync.when(
-        loading: () => const Center(
-          child: CircularProgressIndicator(),
-        ),
+        loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stackTrace) => _ErrorView(
           onRetry: () {
             ref.invalidate(expensesProvider);
           },
         ),
         data: (expenses) {
-          if (expenses.isEmpty) {
-            return const _EmptyExpensesView();
-          }
+          final expenses = filteredExpenses;
 
-          final totalAmount = expenses.fold<double>(
-            0,
-            (total, expense) => total + expense.amount,
-          );
+if (expenses.isEmpty) {
+  return const _EmptyExpensesView();
+}
+
+final totalAmount = expenses.fold<double>(
+  0,
+  (total, expense) => total + expense.amount,
+);
 
           return RefreshIndicator(
             onRefresh: () async {
@@ -48,40 +49,32 @@ class ExpensesScreen extends ConsumerWidget {
             },
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(
-                20,
-                12,
-                20,
-                120,
-              ),
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 120),
               children: [
                 _TotalExpenseCard(
                   totalAmount: totalAmount,
                   expenseCount: expenses.length,
                 ),
+                const SizedBox(height: 24),
+
+const ExpenseSearchBar(),
+
+const SizedBox(height: 28),
                 const SizedBox(height: 28),
                 Text(
                   'Recent expenses',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleLarge
-                      ?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
                 ),
                 const SizedBox(height: 14),
                 ...expenses.map(
                   (expense) => Padding(
-                    padding: const EdgeInsets.only(
-                      bottom: 12,
-                    ),
+                    padding: const EdgeInsets.only(bottom: 12),
                     child: _ExpenseCard(
                       expense: expense,
                       onTap: () {
-                        context.push(
-                          '/expense-details',
-                          extra: expense,
-                        );
+                        context.push('/expense-details', extra: expense);
                       },
                     ),
                   ),
@@ -119,9 +112,7 @@ class _TotalExpenseCard extends StatelessWidget {
           Text(
             'Total expenses',
             style: TextStyle(
-              color: Colors.white.withValues(
-                alpha: 0.75,
-              ),
+              color: Colors.white.withValues(alpha: 0.75),
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -138,11 +129,7 @@ class _TotalExpenseCard extends StatelessWidget {
           Text(
             '$expenseCount '
             '${expenseCount == 1 ? 'expense' : 'expenses'} recorded',
-            style: TextStyle(
-              color: Colors.white.withValues(
-                alpha: 0.75,
-              ),
-            ),
+            style: TextStyle(color: Colors.white.withValues(alpha: 0.75)),
           ),
         ],
       ),
@@ -154,16 +141,11 @@ class _ExpenseCard extends StatelessWidget {
   final ExpenseModel expense;
   final VoidCallback onTap;
 
-  const _ExpenseCard({
-    required this.expense,
-    required this.onTap,
-  });
+  const _ExpenseCard({required this.expense, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    final categoryData = _getCategoryData(
-      expense.category,
-    );
+    final categoryData = _getCategoryData(expense.category);
 
     return InkWell(
       onTap: onTap,
@@ -180,21 +162,15 @@ class _ExpenseCard extends StatelessWidget {
               width: 52,
               height: 52,
               decoration: BoxDecoration(
-                color: categoryData.color.withValues(
-                  alpha: 0.10,
-                ),
+                color: categoryData.color.withValues(alpha: 0.10),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Icon(
-                categoryData.icon,
-                color: categoryData.color,
-              ),
+              child: Icon(categoryData.icon, color: categoryData.color),
             ),
             const SizedBox(width: 14),
             Expanded(
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     expense.title,
@@ -212,10 +188,9 @@ class _ExpenseCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 13,
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withValues(alpha: 0.55),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withValues(alpha: 0.55),
                     ),
                   ),
                 ],
@@ -224,10 +199,7 @@ class _ExpenseCard extends StatelessWidget {
             const SizedBox(width: 12),
             Text(
               '₹${_formatAmount(expense.amount)}',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w900,
-              ),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
             ),
           ],
         ),
@@ -262,9 +234,7 @@ class _EmptyExpensesView extends StatelessWidget {
               width: 110,
               height: 110,
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(
-                  alpha: 0.10,
-                ),
+                color: AppColors.primary.withValues(alpha: 0.10),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -276,27 +246,20 @@ class _EmptyExpensesView extends StatelessWidget {
             const SizedBox(height: 28),
             Text(
               'No expenses yet',
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineSmall
-                  ?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 10),
             Text(
               'Tap the + button to add your first shared expense.',
               textAlign: TextAlign.center,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyLarge
-                  ?.copyWith(
-                    height: 1.5,
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onSurface
-                        .withValues(alpha: 0.55),
-                  ),
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                height: 1.5,
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.55),
+              ),
             ),
           ],
         ),
@@ -308,9 +271,7 @@ class _EmptyExpensesView extends StatelessWidget {
 class _ErrorView extends StatelessWidget {
   final VoidCallback onRetry;
 
-  const _ErrorView({
-    required this.onRetry,
-  });
+  const _ErrorView({required this.onRetry});
 
   @override
   Widget build(BuildContext context) {
@@ -320,20 +281,11 @@ class _ErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.error_outline_rounded,
-              size: 48,
-            ),
+            const Icon(Icons.error_outline_rounded, size: 48),
             const SizedBox(height: 16),
-            const Text(
-              'Unable to load expenses.',
-              textAlign: TextAlign.center,
-            ),
+            const Text('Unable to load expenses.', textAlign: TextAlign.center),
             const SizedBox(height: 12),
-            TextButton(
-              onPressed: onRetry,
-              child: const Text('Try again'),
-            ),
+            TextButton(onPressed: onRetry, child: const Text('Try again')),
           ],
         ),
       ),
@@ -345,10 +297,7 @@ class _CategoryData {
   final IconData icon;
   final Color color;
 
-  const _CategoryData({
-    required this.icon,
-    required this.color,
-  });
+  const _CategoryData({required this.icon, required this.color});
 }
 
 _CategoryData _getCategoryData(String category) {
