@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-
+import '../widgets/expense_filter_button.dart';
 import '../../../core/theme/app_colors.dart';
 import '../models/expense_model.dart';
 import '../providers/expense_provider.dart';
@@ -56,11 +56,17 @@ final totalAmount = expenses.fold<double>(
                   expenseCount: expenses.length,
                 ),
                 const SizedBox(height: 24),
-
-const ExpenseSearchBar(),
-
-const SizedBox(height: 28),
-                const SizedBox(height: 28),
+Row(
+  children: [
+    const Expanded(
+      child: ExpenseSearchBar(),
+    ),
+    const SizedBox(width: 12),
+    const ExpenseFilterButton(),
+  ],
+),
+const SizedBox(height: 24),
+             
                 Text(
                   'Recent expenses',
                   style: Theme.of(
