@@ -32,4 +32,4 @@ final expenseAnalyticsProvider = Provider<ExpenseAnalytics>((ref) {
     highestExpense: highest,
     totalExpenses: expenses.length,
   );
-});
+}); 
