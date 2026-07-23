@@ -8,7 +8,7 @@ final expenseAnalyticsProvider = Provider<ExpenseAnalytics>((ref) {
 
   if (expenses.isEmpty) {
     return const ExpenseAnalytics(
-      totalSpent: 0,
+      totalSpent: 0, 
       averageExpense: 0,
       highestExpense: 0,
       totalExpenses: 0,
