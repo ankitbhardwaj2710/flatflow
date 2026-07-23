@@ -17,7 +17,7 @@ final expenseAnalyticsProvider = Provider<ExpenseAnalytics>((ref) {
 
   double total = 0;
   double highest = 0;
-
+ 
   for (final expense in expenses) {
     total += expense.amount;
 
