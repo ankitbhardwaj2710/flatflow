@@ -25,7 +25,7 @@ final expenseAnalyticsProvider = Provider<ExpenseAnalytics>((ref) {
       highest = expense.amount;
     }
   }
-
+ 
   return ExpenseAnalytics(
     totalSpent: total,
     averageExpense: total / expenses.length,
