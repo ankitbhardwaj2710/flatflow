@@ -3,12 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/expense_model.dart';
 import 'expense_provider.dart';
 
-enum ExpenseSort {
-  newest,
-  oldest,
-  highest,
-  lowest,
-}
+enum ExpenseSort { newest, oldest, highest, lowest }
 
 enum ExpenseDateFilter {
   all,
@@ -75,9 +70,7 @@ class ExpenseFilterNotifier extends Notifier<ExpenseFilterState> {
   }
 
   void setDateFilter(ExpenseDateFilter filter) {
-    state = state.copyWith(
-      dateFilter: filter,
-    );
+    state = state.copyWith(dateFilter: filter);
   }
 
   void setCustomRange(DateTime start, DateTime end) {
@@ -95,8 +88,8 @@ class ExpenseFilterNotifier extends Notifier<ExpenseFilterState> {
 
 final expenseFilterProvider =
     NotifierProvider<ExpenseFilterNotifier, ExpenseFilterState>(
-  ExpenseFilterNotifier.new,
-);
+      ExpenseFilterNotifier.new,
+    );
 
 final filteredExpensesProvider = Provider<List<ExpenseModel>>((ref) {
   final expenses = ref.watch(expensesProvider).value ?? [];
@@ -121,20 +114,69 @@ final filteredExpensesProvider = Provider<List<ExpenseModel>>((ref) {
         .toList();
   }
 
-  // Date filtering will be added in next step
+  // Date Filter
+  if (filter.dateFilter != ExpenseDateFilter.all) {
+    final now = DateTime.now();
+
+    filtered = filtered.where((expense) {
+      final expenseDate = expense.createdAt;
+
+      if (expenseDate == null) return false;
+
+      switch (filter.dateFilter) {
+        case ExpenseDateFilter.thisWeek:
+          final weekStart = now.subtract(Duration(days: now.weekday - 1));
+          return expenseDate.isAfter(
+                weekStart.subtract(const Duration(seconds: 1)),
+              ) &&
+              expenseDate.isBefore(now.add(const Duration(days: 1)));
+
+        case ExpenseDateFilter.thisMonth:
+          return expenseDate.month == now.month && expenseDate.year == now.year;
+
+        case ExpenseDateFilter.lastMonth:
+          final lastMonth = DateTime(now.year, now.month - 1);
+
+          return expenseDate.month == lastMonth.month &&
+              expenseDate.year == lastMonth.year;
+
+        case ExpenseDateFilter.last3Months:
+          final start = DateTime(now.year, now.month - 2, 1);
+
+          return expenseDate.isAfter(
+            start.subtract(const Duration(seconds: 1)),
+          );
+
+        case ExpenseDateFilter.custom:
+          if (filter.startDate == null || filter.endDate == null) {
+            return true;
+          }
+
+          return !expenseDate.isBefore(filter.startDate!) &&
+              !expenseDate.isAfter(filter.endDate!);
+
+        case ExpenseDateFilter.all:
+          return true;
+      }
+    }).toList();
+  }
 
   // Sorting
   switch (filter.sort) {
     case ExpenseSort.newest:
-      filtered.sort((a, b) =>
-          (b.createdAt ?? DateTime(2000))
-              .compareTo(a.createdAt ?? DateTime(2000)));
+      filtered.sort(
+        (a, b) => (b.createdAt ?? DateTime(2000)).compareTo(
+          a.createdAt ?? DateTime(2000),
+        ),
+      );
       break;
 
     case ExpenseSort.oldest:
-      filtered.sort((a, b) =>
-          (a.createdAt ?? DateTime(2000))
-              .compareTo(b.createdAt ?? DateTime(2000)));
+      filtered.sort(
+        (a, b) => (a.createdAt ?? DateTime(2000)).compareTo(
+          b.createdAt ?? DateTime(2000),
+        ),
+      );
       break;
 
     case ExpenseSort.highest:
