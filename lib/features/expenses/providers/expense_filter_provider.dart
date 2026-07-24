@@ -10,26 +10,48 @@ enum ExpenseSort {
   lowest,
 }
 
+enum ExpenseDateFilter {
+  all,
+  thisWeek,
+  thisMonth,
+  lastMonth,
+  last3Months,
+  custom,
+}
+
 class ExpenseFilterState {
   final String search;
   final String category;
   final ExpenseSort sort;
+  final ExpenseDateFilter dateFilter;
+
+  final DateTime? startDate;
+  final DateTime? endDate;
 
   const ExpenseFilterState({
     this.search = '',
     this.category = 'All',
     this.sort = ExpenseSort.newest,
+    this.dateFilter = ExpenseDateFilter.all,
+    this.startDate,
+    this.endDate,
   });
 
   ExpenseFilterState copyWith({
     String? search,
     String? category,
     ExpenseSort? sort,
+    ExpenseDateFilter? dateFilter,
+    DateTime? startDate,
+    DateTime? endDate,
   }) {
     return ExpenseFilterState(
       search: search ?? this.search,
       category: category ?? this.category,
       sort: sort ?? this.sort,
+      dateFilter: dateFilter ?? this.dateFilter,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
     );
   }
 }
@@ -52,6 +74,20 @@ class ExpenseFilterNotifier extends Notifier<ExpenseFilterState> {
     state = state.copyWith(sort: value);
   }
 
+  void setDateFilter(ExpenseDateFilter filter) {
+    state = state.copyWith(
+      dateFilter: filter,
+    );
+  }
+
+  void setCustomRange(DateTime start, DateTime end) {
+    state = state.copyWith(
+      dateFilter: ExpenseDateFilter.custom,
+      startDate: start,
+      endDate: end,
+    );
+  }
+
   void clear() {
     state = const ExpenseFilterState();
   }
@@ -68,6 +104,7 @@ final filteredExpensesProvider = Provider<List<ExpenseModel>>((ref) {
 
   List<ExpenseModel> filtered = List.from(expenses);
 
+  // Search
   if (filter.search.isNotEmpty) {
     final search = filter.search.toLowerCase();
 
@@ -77,12 +114,16 @@ final filteredExpensesProvider = Provider<List<ExpenseModel>>((ref) {
     }).toList();
   }
 
+  // Category
   if (filter.category != 'All') {
     filtered = filtered
         .where((expense) => expense.category == filter.category)
         .toList();
   }
 
+  // Date filtering will be added in next step
+
+  // Sorting
   switch (filter.sort) {
     case ExpenseSort.newest:
       filtered.sort((a, b) =>
