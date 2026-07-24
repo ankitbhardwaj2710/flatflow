@@ -61,13 +61,33 @@ class ExpenseFilterBottomSheet extends ConsumerWidget {
               const SizedBox(height: 28),
 
               const Text(
+                'Date Range',
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: ExpenseDateFilter.values.map((item) {
+                  return ChoiceChip(
+                    label: Text(item.name),
+                    selected: filter.dateFilter == item,
+                    onSelected: (_) {
+                      notifier.setDateFilter(item);
+                    },
+                  );
+                }).toList(),
+              ),
+
+              const Text(
                 'Sort By',
                 style: TextStyle(fontWeight: FontWeight.w600),
               ),
 
               const SizedBox(height: 12),
 
-            RadioListTile<ExpenseSort>(
+              RadioListTile<ExpenseSort>(
                 value: ExpenseSort.newest,
                 groupValue: filter.sort,
                 title: const Text('Newest'),

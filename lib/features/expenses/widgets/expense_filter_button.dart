@@ -16,10 +16,7 @@ class ExpenseFilterButton extends ConsumerWidget {
 
     return IconButton(
       tooltip: 'Filters',
-      icon: Badge(
-        isLabelVisible: activeFilters,
-        child: const Icon(Icons.tune),
-      ),
+      icon: Badge(isLabelVisible: activeFilters, child: const Icon(Icons.tune)),
       onPressed: () {
         showModalBottomSheet(
           context: context,
