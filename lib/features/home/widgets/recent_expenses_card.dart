@@ -19,7 +19,7 @@ class RecentExpensesCard extends ConsumerWidget {
           child: CircularProgressIndicator(),
         ),
       ),
-      error: (_, __) => const Center(
+      error: (_, _) => const Center(
         child: Padding(
           padding: EdgeInsets.all(20),
           child: Text('Unable to load expenses'),
@@ -55,7 +55,7 @@ class RecentExpensesCard extends ConsumerWidget {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: recent.length > 5 ? 5 : recent.length,
-            separatorBuilder: (_, __) => const Divider(height: 1),
+            separatorBuilder: (_, _) => const Divider(height: 1),
             itemBuilder: (context, index) {
               final expense = recent[index];
 

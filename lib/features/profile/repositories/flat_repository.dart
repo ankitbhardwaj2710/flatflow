@@ -3,10 +3,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 class FlatRepository {
   FlatRepository({
-    required FirebaseFirestore firestore,
+    required this._firestore,
     required FirebaseAuth auth,
-  })  : _firestore = firestore,
-        _auth = auth;
+  })  : _auth = auth;
 
   final FirebaseFirestore _firestore;
   final FirebaseAuth _auth;
