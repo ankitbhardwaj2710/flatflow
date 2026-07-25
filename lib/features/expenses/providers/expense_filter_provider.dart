@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/expense_model.dart';
@@ -94,7 +95,7 @@ final expenseFilterProvider =
 final filteredExpensesProvider = Provider<List<ExpenseModel>>((ref) {
   final expenses = ref.watch(expensesProvider).value ?? [];
   final filter = ref.watch(expenseFilterProvider);
-
+  debugPrint('Selected Category = ${filter.category}');
   List<ExpenseModel> filtered = List.from(expenses);
 
   // Search
@@ -108,11 +109,16 @@ final filteredExpensesProvider = Provider<List<ExpenseModel>>((ref) {
   }
 
   // Category
-  if (filter.category != 'All') {
-    filtered = filtered
-        .where((expense) => expense.category == filter.category)
-        .toList();
-  }
+ if (filter.category.trim().toLowerCase() != 'all') {
+  filtered = filtered.where((expense) {
+    debugPrint(
+      'Expense="${expense.category}" | Filter="${filter.category}"',
+    );
+
+    return expense.category.trim().toLowerCase() ==
+        filter.category.trim().toLowerCase();
+  }).toList();
+}
 
   // Date Filter
   if (filter.dateFilter != ExpenseDateFilter.all) {

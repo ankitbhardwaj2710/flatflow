@@ -51,9 +51,11 @@ class ExpenseFilterBottomSheet extends ConsumerWidget {
                   return ChoiceChip(
                     label: Text(category),
                     selected: filter.category == category,
-                    onSelected: (_) {
-                      notifier.setCategory(category);
-                    },
+                    onSelected: (selected) {
+  if (selected) {
+    notifier.setCategory(category);
+  }
+},
                   );
                 }).toList(),
               ),

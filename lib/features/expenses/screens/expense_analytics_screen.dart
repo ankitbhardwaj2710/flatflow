@@ -7,6 +7,7 @@ import '../widgets/category_breakdown_card.dart';
 import '../widgets/top_category_card.dart';
 import '../widgets/charts/category_pie_chart.dart';
 import '../widgets/charts/monthly_bar_chart.dart';
+import '../widgets/charts/weekly_line_chart.dart';
 
 class ExpenseAnalyticsScreen extends ConsumerWidget {
   const ExpenseAnalyticsScreen({super.key});
@@ -30,6 +31,10 @@ class ExpenseAnalyticsScreen extends ConsumerWidget {
 
           MonthlyBarChart(analytics: analytics),
           const SizedBox(height: 20),
+
+          WeeklyLineChart(analytics: analytics),
+          const SizedBox(height: 20),
+
           CategoryPieChart(analytics: analytics),
 
           TopCategoryCard(analytics: analytics),
