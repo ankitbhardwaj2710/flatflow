@@ -5,6 +5,9 @@ import '../providers/expense_analytics_provider.dart';
 import '../widgets/analytics_summary_card.dart';
 import '../widgets/category_breakdown_card.dart';
 import '../widgets/top_category_card.dart';
+import '../widgets/charts/category_pie_chart.dart';
+import '../widgets/charts/monthly_bar_chart.dart';
+import '../widgets/charts/weekly_line_chart.dart';
 
 class ExpenseAnalyticsScreen extends ConsumerWidget {
   const ExpenseAnalyticsScreen({super.key});
@@ -14,27 +17,27 @@ class ExpenseAnalyticsScreen extends ConsumerWidget {
     final analytics = ref.watch(expenseAnalyticsProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Expense Analytics'),
-      ),
+      appBar: AppBar(title: const Text('Expense Analytics')),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          AnalyticsSummaryCard(
-            analytics: analytics,
-          ),
+          AnalyticsSummaryCard(analytics: analytics),
 
           const SizedBox(height: 20),
 
-          CategoryBreakdownCard(
-            analytics: analytics,
-          ),
+          CategoryBreakdownCard(analytics: analytics),
 
           const SizedBox(height: 20),
 
-          TopCategoryCard(
-            analytics: analytics,
-          ),
+          MonthlyBarChart(analytics: analytics),
+          const SizedBox(height: 20),
+
+          WeeklyLineChart(analytics: analytics),
+          const SizedBox(height: 20),
+
+          CategoryPieChart(analytics: analytics),
+
+          TopCategoryCard(analytics: analytics),
         ],
       ),
     );
