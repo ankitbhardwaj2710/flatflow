@@ -8,6 +8,7 @@ import '../models/expense_model.dart';
 import '../providers/expense_provider.dart';
 import '../providers/expense_filter_provider.dart';
 import '../widgets/expense_search_bar.dart';
+import 'expense_analytics_screen.dart';
 
 class ExpensesScreen extends ConsumerWidget {
   const ExpensesScreen({super.key});
@@ -23,6 +24,19 @@ class ExpensesScreen extends ConsumerWidget {
           'Expenses',
           style: TextStyle(fontWeight: FontWeight.w800),
         ),
+        actions: [
+  IconButton(
+    icon: const Icon(Icons.analytics_outlined),
+    onPressed: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const ExpenseAnalyticsScreen(),
+        ),
+      );
+    },
+  ),
+],
       ),
       body: expensesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
@@ -34,14 +48,14 @@ class ExpensesScreen extends ConsumerWidget {
         data: (expenses) {
           final expenses = filteredExpenses;
 
-if (expenses.isEmpty) {
-  return const _EmptyExpensesView();
-}
+          if (expenses.isEmpty) {
+            return const _EmptyExpensesView();
+          }
 
-final totalAmount = expenses.fold<double>(
-  0,
-  (total, expense) => total + expense.amount,
-);
+          final totalAmount = expenses.fold<double>(
+            0,
+            (total, expense) => total + expense.amount,
+          );
 
           return RefreshIndicator(
             onRefresh: () async {
@@ -56,17 +70,15 @@ final totalAmount = expenses.fold<double>(
                   expenseCount: expenses.length,
                 ),
                 const SizedBox(height: 24),
-Row(
-  children: [
-    const Expanded(
-      child: ExpenseSearchBar(),
-    ),
-    const SizedBox(width: 12),
-    const ExpenseFilterButton(),
-  ],
-),
-const SizedBox(height: 24),
-             
+                Row(
+                  children: [
+                    const Expanded(child: ExpenseSearchBar()),
+                    const SizedBox(width: 12),
+                    const ExpenseFilterButton(),
+                  ],
+                ),
+                const SizedBox(height: 24),
+
                 Text(
                   'Recent expenses',
                   style: Theme.of(
