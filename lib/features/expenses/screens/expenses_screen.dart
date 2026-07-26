@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+
 import '../widgets/expense_filter_button.dart';
 import '../../../core/theme/app_colors.dart';
 import '../models/expense_model.dart';
@@ -22,39 +23,52 @@ class ExpensesScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text(
           'Expenses',
-          style: TextStyle(fontWeight: FontWeight.w800),
+          style: TextStyle(
+            fontWeight: FontWeight.w800,
+          ),
         ),
         actions: [
-  IconButton(
-    icon: const Icon(Icons.analytics_outlined),
-    onPressed: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => const ExpenseAnalyticsScreen(),
-        ),
-      );
-    },
-  ),
-],
+          IconButton(
+            icon: const Icon(Icons.analytics_outlined),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                      const ExpenseAnalyticsScreen(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: expensesAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () =>
+            const Center(
+              child: CircularProgressIndicator(),
+            ),
         error: (error, stackTrace) => _ErrorView(
           onRetry: () {
             ref.invalidate(expensesProvider);
           },
         ),
-        data: (expenses) {
+
+        // ===========================
+        // FIX STARTS HERE
+        // ===========================
+
+        data: (allExpenses) {
           final expenses = filteredExpenses;
 
-          if (expenses.isEmpty) {
+          // Database me koi expense hi nahi hai
+          if (allExpenses.isEmpty) {
             return const _EmptyExpensesView();
           }
 
           final totalAmount = expenses.fold<double>(
             0,
-            (total, expense) => total + expense.amount,
+            (total, expense) =>
+                total + expense.amount,
           );
 
           return RefreshIndicator(
@@ -62,41 +76,64 @@ class ExpensesScreen extends ConsumerWidget {
               ref.invalidate(expensesProvider);
             },
             child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 120),
+              physics:
+                  const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(
+                20,
+                12,
+                20,
+                120,
+              ),
               children: [
                 _TotalExpenseCard(
                   totalAmount: totalAmount,
                   expenseCount: expenses.length,
                 ),
+
                 const SizedBox(height: 24),
+
                 Row(
                   children: [
-                    const Expanded(child: ExpenseSearchBar()),
+                    const Expanded(
+                      child: ExpenseSearchBar(),
+                    ),
                     const SizedBox(width: 12),
                     const ExpenseFilterButton(),
                   ],
                 ),
+
                 const SizedBox(height: 24),
 
                 Text(
                   'Recent expenses',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
                 ),
+
                 const SizedBox(height: 14),
-                ...expenses.map(
-                  (expense) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: _ExpenseCard(
-                      expense: expense,
-                      onTap: () {
-                        context.push('/expense-details', extra: expense);
-                      },
+                                if (expenses.isEmpty)
+                  const _NoFilteredResults()
+                else
+                  ...expenses.map(
+                    (expense) => Padding(
+                      padding: const EdgeInsets.only(
+                        bottom: 12,
+                      ),
+                      child: _ExpenseCard(
+                        expense: expense,
+                        onTap: () {
+                          context.push(
+                            '/expense-details',
+                            extra: expense,
+                          );
+                        },
+                      ),
                     ),
                   ),
-                ),
               ],
             ),
           );
@@ -125,12 +162,15 @@ class _TotalExpenseCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
         children: [
           Text(
             'Total expenses',
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.75),
+              color: Colors.white.withValues(
+                alpha: 0.75,
+              ),
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -147,7 +187,11 @@ class _TotalExpenseCard extends StatelessWidget {
           Text(
             '$expenseCount '
             '${expenseCount == 1 ? 'expense' : 'expenses'} recorded',
-            style: TextStyle(color: Colors.white.withValues(alpha: 0.75)),
+            style: TextStyle(
+              color: Colors.white.withValues(
+                alpha: 0.75,
+              ),
+            ),
           ),
         ],
       ),
@@ -159,11 +203,15 @@ class _ExpenseCard extends StatelessWidget {
   final ExpenseModel expense;
   final VoidCallback onTap;
 
-  const _ExpenseCard({required this.expense, required this.onTap});
+  const _ExpenseCard({
+    required this.expense,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final categoryData = _getCategoryData(expense.category);
+    final categoryData =
+        _getCategoryData(expense.category);
 
     return InkWell(
       onTap: onTap,
@@ -171,8 +219,11 @@ class _ExpenseCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(20),
+          color: Theme.of(context)
+              .colorScheme
+              .surface,
+          borderRadius:
+              BorderRadius.circular(20),
         ),
         child: Row(
           children: [
@@ -180,15 +231,21 @@ class _ExpenseCard extends StatelessWidget {
               width: 52,
               height: 52,
               decoration: BoxDecoration(
-                color: categoryData.color.withValues(alpha: 0.10),
-                borderRadius: BorderRadius.circular(16),
+                color: categoryData.color
+                    .withValues(alpha: 0.10),
+                borderRadius:
+                    BorderRadius.circular(16),
               ),
-              child: Icon(categoryData.icon, color: categoryData.color),
+              child: Icon(
+                categoryData.icon,
+                color: categoryData.color,
+              ),
             ),
-            const SizedBox(width: 14),
+                        const SizedBox(width: 14),
             Expanded(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment:
+                    CrossAxisAlignment.start,
                 children: [
                   Text(
                     expense.title,
@@ -206,9 +263,10 @@ class _ExpenseCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 13,
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withValues(alpha: 0.55),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withValues(alpha: 0.55),
                     ),
                   ),
                 ],
@@ -217,7 +275,10 @@ class _ExpenseCard extends StatelessWidget {
             const SizedBox(width: 12),
             Text(
               '₹${_formatAmount(expense.amount)}',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
+              ),
             ),
           ],
         ),
@@ -225,7 +286,9 @@ class _ExpenseCard extends StatelessWidget {
     );
   }
 
-  String _buildSubtitle(ExpenseModel expense) {
+  String _buildSubtitle(
+    ExpenseModel expense,
+  ) {
     final date = expense.createdAt;
 
     if (date == null) {
@@ -237,22 +300,26 @@ class _ExpenseCard extends StatelessWidget {
   }
 }
 
-class _EmptyExpensesView extends StatelessWidget {
+class _EmptyExpensesView
+    extends StatelessWidget {
   const _EmptyExpensesView();
 
   @override
   Widget build(BuildContext context) {
     return Center(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.all(32),
+        padding:
+            const EdgeInsets.all(32),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment:
+              MainAxisAlignment.center,
           children: [
             Container(
               width: 110,
               height: 110,
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.10),
+                color: AppColors.primary
+                    .withValues(alpha: 0.10),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
@@ -264,20 +331,28 @@ class _EmptyExpensesView extends StatelessWidget {
             const SizedBox(height: 28),
             Text(
               'No expenses yet',
-              style: Theme.of(
-                context,
-              ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+              style: Theme.of(context)
+                  .textTheme
+                  .headlineSmall
+                  ?.copyWith(
+                    fontWeight:
+                        FontWeight.w800,
+                  ),
             ),
             const SizedBox(height: 10),
             Text(
               'Tap the + button to add your first shared expense.',
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                height: 1.5,
-                color: Theme.of(
-                  context,
-                ).colorScheme.onSurface.withValues(alpha: 0.55),
-              ),
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyLarge
+                  ?.copyWith(
+                    height: 1.5,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.55),
+                  ),
             ),
           ],
         ),
@@ -285,11 +360,12 @@ class _EmptyExpensesView extends StatelessWidget {
     );
   }
 }
-
 class _ErrorView extends StatelessWidget {
   final VoidCallback onRetry;
 
-  const _ErrorView({required this.onRetry});
+  const _ErrorView({
+    required this.onRetry,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -299,11 +375,69 @@ class _ErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline_rounded, size: 48),
+            const Icon(
+              Icons.error_outline_rounded,
+              size: 48,
+            ),
             const SizedBox(height: 16),
-            const Text('Unable to load expenses.', textAlign: TextAlign.center),
+            const Text(
+              'Unable to load expenses.',
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 12),
-            TextButton(onPressed: onRetry, child: const Text('Try again')),
+            TextButton(
+              onPressed: onRetry,
+              child: const Text('Try again'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// ===============================
+/// NEW WIDGET
+/// ===============================
+class _NoFilteredResults extends ConsumerWidget {
+  const _NoFilteredResults();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 40),
+      child: Center(
+        child: Column(
+          children: [
+            const Icon(
+              Icons.filter_alt_off,
+              size: 60,
+              color: Colors.grey,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'No matching expenses',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Try changing or clearing your filters.',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            FilledButton(
+              onPressed: () {
+                ref
+                    .read(expenseFilterProvider.notifier)
+                    .clear();
+              },
+              child: const Text(
+                'Clear Filters',
+              ),
+            ),
           ],
         ),
       ),
@@ -315,9 +449,11 @@ class _CategoryData {
   final IconData icon;
   final Color color;
 
-  const _CategoryData({required this.icon, required this.color});
+  const _CategoryData({
+    required this.icon,
+    required this.color,
+  });
 }
-
 _CategoryData _getCategoryData(String category) {
   switch (category.toLowerCase()) {
     case 'grocery':

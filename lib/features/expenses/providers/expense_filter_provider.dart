@@ -71,20 +71,41 @@ class ExpenseFilterNotifier extends Notifier<ExpenseFilterState> {
   }
 
   void setDateFilter(ExpenseDateFilter filter) {
-    state = state.copyWith(dateFilter: filter);
-  }
+  state = state.copyWith(
+    dateFilter: filter,
+    startDate: filter == ExpenseDateFilter.custom ? state.startDate : null,
+    endDate: filter == ExpenseDateFilter.custom ? state.endDate : null,
+  );
+}
 
-  void setCustomRange(DateTime start, DateTime end) {
-    state = state.copyWith(
-      dateFilter: ExpenseDateFilter.custom,
-      startDate: start,
-      endDate: end,
-    );
-  }
+  // void setCustomRange(DateTime start, DateTime end) {
+  //   state = state.copyWith(
+  //     dateFilter: ExpenseDateFilter.custom,
+  //     startDate: start,
+  //     endDate: end,
+  //   );
+  // }
 
   void clear() {
     state = const ExpenseFilterState();
   }
+  void setCustomDateRange(
+  DateTime start,
+  DateTime end,
+) {
+  state = state.copyWith(
+    dateFilter: ExpenseDateFilter.custom,
+    startDate: start,
+    endDate: DateTime(
+      end.year,
+      end.month,
+      end.day,
+      23,
+      59,
+      59,
+    ),
+  );
+}
 }
 
 final expenseFilterProvider =
@@ -159,12 +180,14 @@ if (filter.category.trim().toLowerCase() != 'all') {
           );
 
         case ExpenseDateFilter.custom:
-          if (filter.startDate == null || filter.endDate == null) {
-            return true;
-          }
+  if (filter.startDate == null || filter.endDate == null) {
+    return false;
+  }
 
-          return !expenseDate.isBefore(filter.startDate!) &&
-              !expenseDate.isAfter(filter.endDate!);
+  return expenseDate.isAtSameMomentAs(filter.startDate!) ||
+      expenseDate.isAtSameMomentAs(filter.endDate!) ||
+      (expenseDate.isAfter(filter.startDate!) &&
+          expenseDate.isBefore(filter.endDate!));
 
         case ExpenseDateFilter.all:
           return true;
