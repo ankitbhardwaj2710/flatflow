@@ -11,20 +11,34 @@ class ExpenseFilterButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final filter = ref.watch(expenseFilterProvider);
 
-    final activeFilters =
-        (filter.category != 'All') || filter.sort != ExpenseSort.newest;
+    int activeFilters = 0;
 
-    return IconButton(
-      tooltip: 'Filters',
-      icon: Badge(isLabelVisible: activeFilters, child: const Icon(Icons.tune)),
-      onPressed: () {
-        showModalBottomSheet(
-          context: context,
-          isScrollControlled: true,
-          showDragHandle: true,
-          builder: (_) => const ExpenseFilterBottomSheet(),
-        );
-      },
+    if (filter.category != 'All') activeFilters++;
+
+    if (filter.sort != ExpenseSort.newest) activeFilters++;
+
+    if (filter.dateFilter != ExpenseDateFilter.all) activeFilters++;
+
+    if (filter.search.isNotEmpty) activeFilters++;
+
+    return Badge(
+      isLabelVisible: activeFilters > 0,
+      label: Text(activeFilters.toString()),
+      offset: const Offset(-2, 2),
+      backgroundColor: Colors.red,
+      textColor: Colors.white,
+      child: IconButton(
+        tooltip: 'Filters',
+        icon: const Icon(Icons.tune_rounded),
+        onPressed: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            showDragHandle: true,
+            builder: (_) => const ExpenseFilterBottomSheet(),
+          );
+        },
+      ),
     );
   }
 }

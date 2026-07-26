@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../theme/app_colors.dart';
@@ -22,9 +23,16 @@ class MainNavigationShell extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: navigationShell,
+
       bottomNavigationBar: NavigationBar(
+        height: 72,
+        elevation: 8,
         selectedIndex: navigationShell.currentIndex,
-        onDestinationSelected: _goToBranch,
+        animationDuration: const Duration(milliseconds: 300),
+        onDestinationSelected: (index) {
+          HapticFeedback.selectionClick();
+          _goToBranch(index);
+        },
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.home_outlined),
@@ -48,17 +56,23 @@ class MainNavigationShell extends StatelessWidget {
           ),
         ],
       ),
+
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-  context.push('/add-expense');
-},
+        heroTag: 'add_expense_fab',
+        elevation: 6,
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
+        tooltip: 'Add Expense',
+        onPressed: () {
+          HapticFeedback.lightImpact();
+          context.push('/add-expense');
+        },
         child: const Icon(
           Icons.add_rounded,
           size: 30,
         ),
       ),
+
       floatingActionButtonLocation:
           FloatingActionButtonLocation.centerDocked,
     );
