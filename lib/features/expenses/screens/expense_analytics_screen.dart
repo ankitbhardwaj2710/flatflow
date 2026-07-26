@@ -36,7 +36,7 @@ class ExpenseAnalyticsScreen extends ConsumerWidget {
           const SizedBox(height: 20),
 
           CategoryPieChart(analytics: analytics),
-
+          const SizedBox(height: 40),
           TopCategoryCard(analytics: analytics),
         ],
       ),

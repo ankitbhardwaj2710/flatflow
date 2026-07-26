@@ -22,9 +22,7 @@ class CategoryPieChart extends StatelessWidget {
         child: SizedBox(
           height: 220,
           child: Center(
-            child: Text(
-              'No expense data available',
-            ),
+            child: Text('No expense data available'),
           ),
         ),
       );
@@ -35,55 +33,57 @@ class CategoryPieChart extends StatelessWidget {
 
     return ChartCard(
       title: 'Category Spending',
-      child: Column(
-        children: [
-          SizedBox(
-            height: 260,
-            child: PieChart(
-              PieChartData(
-                centerSpaceRadius: 55,
-                sectionsSpace: 4,
-                startDegreeOffset: -90,
-                pieTouchData: PieTouchData(
-                  enabled: true,
-                ),
-                sections: List.generate(
-                  entries.length,
-                  (index) {
-                    final entry = entries[index];
+      child: SingleChildScrollView(
+        physics: const NeverScrollableScrollPhysics(),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              height: 260,
+              child: PieChart(
+                PieChartData(
+                  centerSpaceRadius: 25,
+                  sectionsSpace: 0,
+                  startDegreeOffset: -90,
+                  pieTouchData: PieTouchData(
+                    enabled: true,
+                  ),
+                  sections: List.generate(
+                    entries.length,
+                    (index) {
+                      final entry = entries[index];
 
-                    final percent =
-                        (entry.value / analytics.totalSpent) * 100;
+                      final percent = analytics.totalSpent == 0
+                          ? 0
+                          : (entry.value / analytics.totalSpent) * 100;
 
-                    return PieChartSectionData(
-                      value: entry.value,
-                      color: ChartColors.colors[
-                          index % ChartColors.colors.length],
-                      radius: 90,
-                      title:
-                          '${percent.toStringAsFixed(0)}%',
-                      titleStyle: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                      ),
-                    );
-                  },
+                      return PieChartSectionData(
+                        value: entry.value,
+                        color: ChartColors.colors[
+                            index % ChartColors.colors.length],
+                        radius: 90,
+                        title: '${percent.toStringAsFixed(0)}%',
+                        titleStyle: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      );
+                    },
+                  ),
                 ),
+                duration: const Duration(milliseconds: 700),
+                curve: Curves.easeOutCubic,
               ),
-              duration: const Duration(
-                milliseconds: 700,
-              ),
-              curve: Curves.easeOutCubic,
             ),
-          ),
 
-          const SizedBox(height: 24),
+            const SizedBox(height: 24),
 
-          CategoryLegend(
-            categories: analytics.categoryTotals,
-          ),
-        ],
+            CategoryLegend(
+              categories: analytics.categoryTotals,
+            ),
+          ],
+        ),
       ),
     );
   }

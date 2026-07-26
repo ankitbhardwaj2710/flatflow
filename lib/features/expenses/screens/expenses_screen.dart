@@ -188,7 +188,12 @@ class _ExpenseCard extends ConsumerWidget {
       confirmDismiss: (direction) async {
         HapticFeedback.mediumImpact();
 
-        if (direction == DismissDirection.endToStart) {
+        if (direction == DismissDirection.endToStart) 
+         {
+    onTap();
+    return false;
+  }
+        {
           final delete = await showDialog<bool>(
             context: context,
             builder: (_) => AlertDialog(
@@ -222,7 +227,7 @@ class _ExpenseCard extends ConsumerWidget {
               ).showSnackBar(const SnackBar(content: Text('Expense deleted')));
             }
 
-            return true;
+            return false;
           } catch (e) {
             if (context.mounted) {
               ScaffoldMessenger.of(
