@@ -109,15 +109,20 @@ final filteredExpensesProvider = Provider<List<ExpenseModel>>((ref) {
   }
 
   // Category
- if (filter.category.trim().toLowerCase() != 'all') {
+ // Category
+if (filter.category.trim().toLowerCase() != 'all') {
   filtered = filtered.where((expense) {
+    final expenseCategory = expense.category.trim().toLowerCase();
+    final selectedCategory = filter.category.trim().toLowerCase();
+
     debugPrint(
-      'Expense="${expense.category}" | Filter="${filter.category}"',
+      'Expense Category: $expenseCategory | Selected: $selectedCategory',
     );
 
-    return expense.category.trim().toLowerCase() ==
-        filter.category.trim().toLowerCase();
+    return expenseCategory == selectedCategory;
   }).toList();
+
+  debugPrint('Filtered Count: ${filtered.length}');
 }
 
   // Date Filter
