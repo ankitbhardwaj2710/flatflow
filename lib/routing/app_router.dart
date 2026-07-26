@@ -102,7 +102,7 @@ GoRoute(
           routes: [
             GoRoute(
               path: '/expenses',
-              name: 'expenses',
+              name: 'expenses', 
               builder: (context, state) => const ExpensesScreen(),
             ),
           ],
