@@ -186,63 +186,63 @@ class _ExpenseCard extends ConsumerWidget {
       direction: DismissDirection.horizontal,
 
       confirmDismiss: (direction) async {
-        HapticFeedback.mediumImpact();
+  HapticFeedback.mediumImpact();
 
-        if (direction == DismissDirection.endToStart) 
-         {
+  if (direction == DismissDirection.startToEnd) {
     onTap();
     return false;
   }
-        {
-          final delete = await showDialog<bool>(
-            context: context,
-            builder: (_) => AlertDialog(
-              icon: const Icon(Icons.delete_outline_rounded, color: Colors.red),
-              title: const Text('Delete Expense'),
-              content: const Text(
-                'Are you sure you want to delete this expense?',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Cancel'),
-                ),
-                FilledButton(
-                  style: FilledButton.styleFrom(backgroundColor: Colors.red),
-                  onPressed: () => Navigator.pop(context, true),
-                  child: const Text('Delete'),
-                ),
-              ],
-            ),
-          );
 
-          if (delete != true) return false;
+  final delete = await showDialog<bool>(
+    context: context,
+    builder: (_) => AlertDialog(
+      icon: const Icon(Icons.delete_outline_rounded, color: Colors.red),
+      title: const Text('Delete Expense'),
+      content: const Text(
+        'Are you sure you want to delete this expense?',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          style: FilledButton.styleFrom(
+            backgroundColor: Colors.red,
+          ),
+          onPressed: () => Navigator.of(context).pop(true),
+          child: const Text('Delete'),
+        ),
+      ],
+    ),
+  );
 
-          try {
-            await ref.read(expenseRepositoryProvider).deleteExpense(expense.id);
+  if (delete != true) return false;
 
-            if (context.mounted) {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(const SnackBar(content: Text('Expense deleted')));
-            }
+  if (!context.mounted) return false;
 
-            return false;
-          } catch (e) {
-            if (context.mounted) {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text(e.toString())));
-            }
+  try {
+    await ref
+        .read(expenseRepositoryProvider)
+        .deleteExpense(expense.id);
 
-            return false;
-          }
-        }
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Expense deleted'),
+        ),
+      );
+    }
+  } catch (e) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    }
+  }
 
-        context.push('/expense-details', extra: expense);
-
-        return false;
-      },
+  return false;
+},
 
       background: Container(
         decoration: BoxDecoration(

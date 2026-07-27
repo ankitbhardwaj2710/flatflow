@@ -82,6 +82,17 @@ GoRoute(
     );
   },
 ),
+GoRoute(
+  path: '/edit-expense',
+  name: 'edit-expense',
+  builder: (context, state) {
+    final expense = state.extra as ExpenseModel;
+
+    return AddExpenseScreen(
+      expense: expense,
+    );
+  },
+),
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
         return MainNavigationShell(
