@@ -81,7 +81,56 @@ class ExpenseRepository {
           'createdAt': FieldValue.serverTimestamp(),
         });
   }
+Future<void> updateExpense({
+  required String expenseId,
+  required String title,
+  required double amount,
+  required String category,
+  required String paidBy,
+  required List<String> splitAmong,
+  required String note,
+}) async {
+  final user = _firebaseAuth.currentUser;
 
+  if (user == null) {
+    throw Exception('User is not signed in.');
+  }
+
+  if (title.trim().isEmpty) {
+    throw Exception('Expense title cannot be empty.');
+  }
+
+  if (amount <= 0) {
+    throw Exception('Expense amount must be greater than zero.');
+  }
+
+  if (splitAmong.isEmpty) {
+    throw Exception('Select at least one member.');
+  }
+
+  final flatId = await _getCurrentFlatId();
+
+  final splits = _calculateEqualSplits(
+    amount: amount,
+    memberIds: splitAmong,
+  );
+
+  await _firestore
+      .collection('flats')
+      .doc(flatId)
+      .collection('expenses')
+      .doc(expenseId)
+      .update({
+    'title': title.trim(),
+    'amount': amount,
+    'category': category,
+    'paidBy': paidBy,
+    'splitAmong': splitAmong,
+    'splits': splits,
+    'note': note.trim(),
+    'updatedAt': FieldValue.serverTimestamp(),
+  });
+}
   Stream<List<ExpenseModel>> watchExpenses() async* {
     final flatId = await _getCurrentFlatId();
 
