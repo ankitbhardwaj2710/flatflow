@@ -196,7 +196,7 @@ Future<void> updateExpense({
     required String paidTo,
     required double amount,
   }) async {
-    final user = _firebaseAuth.currentUser;
+    final user = _firebaseAuth.currentUser ;
 
     if (user == null) {
       throw Exception('User is not signed in.');
