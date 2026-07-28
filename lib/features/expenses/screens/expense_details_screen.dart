@@ -38,7 +38,9 @@ class _ExpenseDetailsScreenState
   }
 
   Future<void> _confirmDelete() async {
+    debugPrint("DELETE SWIPE");
     final shouldDelete = await showDialog<bool>(
+      
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
@@ -75,7 +77,7 @@ class _ExpenseDetailsScreenState
       await ref
           .read(expenseRepositoryProvider)
           .deleteExpense(widget.expense.id);
-
+debugPrint("DELETE SUCCESS");
       if (!mounted) return;
 
       ref.invalidate(expensesProvider);

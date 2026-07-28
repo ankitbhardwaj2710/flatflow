@@ -107,7 +107,10 @@ class ExpensesScreen extends ConsumerWidget {
                       child: _ExpenseCard(
                         expense: expense,
                         onTap: () {
-                          context.push('/expense-details', extra: expense);
+                          context.pushNamed('expense-details', extra: expense);
+                        },
+                        onEdit: () {
+                          context.pushNamed('edit-expense', extra: expense);
                         },
                       ),
                     ),
@@ -173,8 +176,14 @@ class _TotalExpenseCard extends StatelessWidget {
 class _ExpenseCard extends ConsumerWidget {
   final ExpenseModel expense;
   final VoidCallback onTap;
+  // final VoidCallback onTap;
+  final VoidCallback onEdit;
 
-  const _ExpenseCard({required this.expense, required this.onTap});
+  const _ExpenseCard({
+    required this.expense,
+    required this.onTap,
+    required this.onEdit,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -186,62 +195,31 @@ class _ExpenseCard extends ConsumerWidget {
       direction: DismissDirection.horizontal,
 
       confirmDismiss: (direction) async {
-  HapticFeedback.mediumImpact();
-
   if (direction == DismissDirection.startToEnd) {
-    onTap();
+    onEdit();
     return false;
   }
 
-  final delete = await showDialog<bool>(
-    context: context,
-    builder: (_) => AlertDialog(
-      icon: const Icon(Icons.delete_outline_rounded, color: Colors.red),
-      title: const Text('Delete Expense'),
-      content: const Text(
-        'Are you sure you want to delete this expense?',
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('Cancel'),
-        ),
-        FilledButton(
-          style: FilledButton.styleFrom(
-            backgroundColor: Colors.red,
+  return await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('Delete Expense'),
+          content: const Text(
+            'Are you sure you want to delete this expense?',
           ),
-          onPressed: () => Navigator.of(context).pop(true),
-          child: const Text('Delete'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Delete'),
+            ),
+          ],
         ),
-      ],
-    ),
-  );
-
-  if (delete != true) return false;
-
-  if (!context.mounted) return false;
-
-  try {
-    await ref
-        .read(expenseRepositoryProvider)
-        .deleteExpense(expense.id);
-
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Expense deleted'),
-        ),
-      );
-    }
-  } catch (e) {
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
-    }
-  }
-
-  return false;
+      ) ??
+      false;
 },
 
       background: Container(
@@ -288,7 +266,19 @@ class _ExpenseCard extends ConsumerWidget {
           ],
         ),
       ),
+onDismissed: (_) async {
+  await ref
+      .read(expenseRepositoryProvider)
+      .deleteExpense(expense.id);
 
+  if (context.mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Expense deleted'),
+      ),
+    );
+  }
+},
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(20),
