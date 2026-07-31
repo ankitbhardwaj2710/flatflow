@@ -81,56 +81,55 @@ class ExpenseRepository {
           'createdAt': FieldValue.serverTimestamp(),
         });
   }
-Future<void> updateExpense({
-  required String expenseId,
-  required String title,
-  required double amount,
-  required String category,
-  required String paidBy,
-  required List<String> splitAmong,
-  required String note,
-}) async {
-  final user = _firebaseAuth.currentUser;
 
-  if (user == null) {
-    throw Exception('User is not signed in.');
+  Future<void> updateExpense({
+    required String expenseId,
+    required String title,
+    required double amount,
+    required String category,
+    required String paidBy,
+    required List<String> splitAmong,
+    required String note,
+  }) async {
+    final user = _firebaseAuth.currentUser;
+
+    if (user == null) {
+      throw Exception('User is not signed in.');
+    }
+
+    if (title.trim().isEmpty) {
+      throw Exception('Expense title cannot be empty.');
+    }
+
+    if (amount <= 0) {
+      throw Exception('Expense amount must be greater than zero.');
+    }
+
+    if (splitAmong.isEmpty) {
+      throw Exception('Select at least one member.');
+    }
+
+    final flatId = await _getCurrentFlatId();
+
+    final splits = _calculateEqualSplits(amount: amount, memberIds: splitAmong);
+
+    await _firestore
+        .collection('flats')
+        .doc(flatId)
+        .collection('expenses')
+        .doc(expenseId)
+        .update({
+          'title': title.trim(),
+          'amount': amount,
+          'category': category,
+          'paidBy': paidBy,
+          'splitAmong': splitAmong,
+          'splits': splits,
+          'note': note.trim(),
+          'updatedAt': FieldValue.serverTimestamp(),
+        });
   }
 
-  if (title.trim().isEmpty) {
-    throw Exception('Expense title cannot be empty.');
-  }
-
-  if (amount <= 0) {
-    throw Exception('Expense amount must be greater than zero.');
-  }
-
-  if (splitAmong.isEmpty) {
-    throw Exception('Select at least one member.');
-  }
-
-  final flatId = await _getCurrentFlatId();
-
-  final splits = _calculateEqualSplits(
-    amount: amount,
-    memberIds: splitAmong,
-  );
-
-  await _firestore
-      .collection('flats')
-      .doc(flatId)
-      .collection('expenses')
-      .doc(expenseId)
-      .update({
-    'title': title.trim(),
-    'amount': amount,
-    'category': category,
-    'paidBy': paidBy,
-    'splitAmong': splitAmong,
-    'splits': splits,
-    'note': note.trim(),
-    'updatedAt': FieldValue.serverTimestamp(),
-  });
-}
   Stream<List<ExpenseModel>> watchExpenses() async* {
     final flatId = await _getCurrentFlatId();
 
@@ -145,51 +144,42 @@ Future<void> updateExpense({
         );
   }
 
-  Future<void> deleteExpense(String expenseId) async {
-    final user = _firebaseAuth.currentUser;
+ Future<void> deleteExpense(String expenseId) async {
+  final user = _firebaseAuth.currentUser;
 
-    if (user == null) {
-      throw Exception('User is not signed in.');
-    }
-
-    final flatId = await _getCurrentFlatId();
-
-    final expenseReference = _firestore
-        .collection('flats')
-        .doc(flatId)
-        .collection('expenses')
-        .doc(expenseId);
-
-    final expenseDocument = await expenseReference.get();
-
-    if (!expenseDocument.exists) {
-      throw Exception('Expense not found.');
-    }
-
-    final expenseData = expenseDocument.data()!;
-
-    final createdBy = expenseData['createdBy'] as String?;
-
-    final paidBy = expenseData['paidBy'] as String?;
-
-    final memberDocument = await _firestore
-        .collection('flats')
-        .doc(flatId)
-        .collection('members')
-        .doc(user.uid)
-        .get();
-
-    final role = memberDocument.data()?['role'] as String?;
-
-    final canDelete =
-        createdBy == user.uid || paidBy == user.uid || role == 'admin';
-
-    if (!canDelete) {
-      throw Exception('You do not have permission to delete this expense.');
-    }
-
-    await expenseReference.delete();
+  if (user == null) {
+    throw Exception('User is not signed in.');
   }
+
+  final flatId = await _getCurrentFlatId();
+
+  final expenseReference = _firestore
+      .collection('flats')
+      .doc(flatId)
+      .collection('expenses')
+      .doc(expenseId);
+
+  final expenseDocument = await expenseReference.get();
+
+  if (!expenseDocument.exists) {
+    throw Exception('Expense not found.');
+  }
+
+  final memberDocument = await _firestore
+      .collection('flats')
+      .doc(flatId)
+      .collection('members')
+      .doc(user.uid)
+      .get();
+
+  final role = memberDocument.data()?['role'] as String?;
+
+  if (role != 'admin') {
+    throw Exception('Only the flat admin can delete expenses.');
+  }
+
+  await expenseReference.delete();
+}
 
   Future<void> addSettlement({
     required String paidBy,

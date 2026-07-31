@@ -17,7 +17,7 @@ import '../features/expenses/screens/add_expense_screen.dart';
 import '../features/expenses/screens/expense_details_screen.dart';
 import '../features/expenses/models/expense_model.dart';
 import '../features/profile/screens/flat_settings_screen.dart';
-
+import '../features/bills/screens/bills_screen.dart';
 final GoRouter appRouter = GoRouter(
   initialLocation: '/splash',
   routes: [
@@ -65,6 +65,11 @@ final GoRouter appRouter = GoRouter(
   path: '/flat-settings',
   name: 'flat-settings',
   builder: (context, state) => const FlatSettingsScreen(),
+),
+GoRoute(
+  path: '/bills',
+  name: 'bills',
+  builder: (context, state) => const BillsScreen(),
 ),
 GoRoute(
   path: '/add-expense',

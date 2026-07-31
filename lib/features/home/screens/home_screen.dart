@@ -2,7 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../expenses/models/member_balance.dart';
 import '../../expenses/providers/expense_provider.dart';
@@ -170,12 +170,15 @@ class HomeScreen extends ConsumerWidget {
 
                         const SizedBox(height: 14),
 
-                        const Row(
+                         Row(
                           children: [
                             Expanded(
                               child: _QuickActionCard(
                                 icon: Icons.add_rounded,
                                 label: 'Add expense',
+                                 onTap: () {
+          context.push('/add-expense');
+        },
                               ),
                             ),
                             SizedBox(width: 12),
@@ -183,6 +186,10 @@ class HomeScreen extends ConsumerWidget {
                               child: _QuickActionCard(
                                 icon: Icons.receipt_long_rounded,
                                 label: 'Add bill',
+                                onTap: () {
+          context.push('/bills');
+        },
+
                               ),
                             ),
                             SizedBox(width: 12),
@@ -190,6 +197,9 @@ class HomeScreen extends ConsumerWidget {
                               child: _QuickActionCard(
                                 icon: Icons.shopping_cart_outlined,
                                 label: 'Grocery',
+                                onTap: () {
+          context.push('/grocery');
+        },
                               ),
                             ),
                           ],
@@ -440,13 +450,18 @@ class _OverviewCard extends StatelessWidget {
 class _QuickActionCard extends StatelessWidget {
   final IconData icon;
   final String label;
+  final VoidCallback onTap;
 
-  const _QuickActionCard({required this.icon, required this.label});
+  const _QuickActionCard({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {},
+      onTap: onTap,
       borderRadius: BorderRadius.circular(18),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 8),
