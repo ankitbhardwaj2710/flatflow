@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../providers/bill_provider.dart';
-import '../repositories/bill_repository.dart';
+// import '../repositories/bill_repository.dart';
 import '../widgets/bill_card.dart';
 import 'add_bill_screen.dart';
 
