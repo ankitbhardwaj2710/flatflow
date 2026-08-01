@@ -381,28 +381,40 @@ class ProfileScreen extends ConsumerWidget {
             ),
 
             const SizedBox(height: 14),
+_SettingsCard(
+  children: [
+    _SettingsTile(
+      icon: Icons.person_outline_rounded,
+      title: 'Edit profile',
+      subtitle: 'Update your personal information',
+      onTap: () {
+        _showEditProfileSheet(context, ref, currentUserName);
+      },
+    ),
 
-            _SettingsCard(
-              children: [
-                _SettingsTile(
-                  icon: Icons.person_outline_rounded,
-                  title: 'Edit profile',
-                  subtitle: 'Update your personal information',
-                  onTap: () {
-                    _showEditProfileSheet(context, ref, currentUserName);
-                  },
-                ),
-                const Divider(height: 1),
-                _SettingsTile(
-                  icon: Icons.home_outlined,
-                  title: 'Flat settings',
-                  subtitle: 'Manage your shared flat',
-                  onTap: () {
-                    context.push('/flat-settings');
-                  },
-                ),
-              ],
-            ),
+    const Divider(height: 1),
+
+    _SettingsTile(
+      icon: Icons.home_outlined,
+      title: 'Flat settings',
+      subtitle: 'Manage your shared flat',
+      onTap: () {
+        context.push('/flat-settings');
+      },
+    ),
+
+    const Divider(height: 1),
+
+    _SettingsTile(
+      icon: Icons.picture_as_pdf_outlined,
+      title: 'Export Reports',
+      subtitle: 'Export expenses and bills to PDF or Excel',
+      onTap: () {
+        context.push('/export');
+      },
+    ),
+  ],
+),
 
             const SizedBox(height: 20),
 
