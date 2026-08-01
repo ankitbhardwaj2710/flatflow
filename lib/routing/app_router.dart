@@ -1,5 +1,5 @@
 import 'package:go_router/go_router.dart';
-
+import '../features/export/screens/export_screen.dart';
 import '../core/widgets/main_navigation_shell.dart';
 import '../features/auth/screens/forgot_password_screen.dart';
 import '../features/auth/screens/login_screen.dart';
@@ -75,6 +75,11 @@ GoRoute(
   path: '/add-expense',
   name: 'add-expense',
   builder: (context, state) => const AddExpenseScreen(),
+),
+GoRoute(
+  path: '/export',
+  name: 'export',
+  builder: (context, state) => const ExportScreen(),
 ),
 GoRoute(
   path: '/expense-details',
