@@ -25,6 +25,7 @@ class _AddBillScreenState extends ConsumerState<AddBillScreen> {
   bool _isSaving = false;
 
   late DateTime _dueDate;
+  late TimeOfDay _dueTime;
 
   final List<String> _categories = [
     'Electricity',
@@ -49,16 +50,19 @@ class _AddBillScreenState extends ConsumerState<AddBillScreen> {
     _titleController =
         TextEditingController(text: bill?.title ?? '');
 
-    _amountController =
-        TextEditingController(
+    _amountController = TextEditingController(
       text: bill?.amount.toString() ?? '',
     );
 
     _selectedCategory =
         bill?.category ?? _categories.first;
 
-    _dueDate =
-        bill?.dueDate ?? DateTime.now();
+    _dueDate = bill?.dueDate ?? DateTime.now();
+
+    _dueTime = TimeOfDay(
+      hour: _dueDate.hour,
+      minute: _dueDate.minute,
+    );
   }
 
   @override
@@ -83,6 +87,19 @@ class _AddBillScreenState extends ConsumerState<AddBillScreen> {
     }
   }
 
+  Future<void> _pickTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: _dueTime,
+    );
+
+    if (picked != null) {
+      setState(() {
+        _dueTime = picked;
+      });
+    }
+  }
+
   Future<void> _saveBill() async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -91,6 +108,14 @@ class _AddBillScreenState extends ConsumerState<AddBillScreen> {
     setState(() {
       _isSaving = true;
     });
+
+    final dueDateTime = DateTime(
+      _dueDate.year,
+      _dueDate.month,
+      _dueDate.day,
+      _dueTime.hour,
+      _dueTime.minute,
+    );
 
     try {
       final repository =
@@ -104,7 +129,7 @@ class _AddBillScreenState extends ConsumerState<AddBillScreen> {
             _amountController.text,
           ),
           category: _selectedCategory,
-          dueDate: _dueDate,
+          dueDate: dueDateTime,
         );
       } else {
         await repository.addBill(
@@ -113,7 +138,7 @@ class _AddBillScreenState extends ConsumerState<AddBillScreen> {
             _amountController.text,
           ),
           category: _selectedCategory,
-          dueDate: _dueDate,
+          dueDate: dueDateTime,
         );
       }
 
@@ -142,23 +167,23 @@ class _AddBillScreenState extends ConsumerState<AddBillScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          isEditing
-              ? 'Edit Bill'
-              : 'Add Bill',
+          isEditing ? 'Edit Bill' : 'Add Bill',
         ),
       ),
       body: Form(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.all(20),
-          children: [            TextFormField(
+          children: [
+            TextFormField(
               controller: _titleController,
               decoration: const InputDecoration(
                 labelText: 'Bill Title',
                 prefixIcon: Icon(Icons.receipt_long),
               ),
               validator: (value) {
-                if (value == null || value.trim().isEmpty) {
+                if (value == null ||
+                    value.trim().isEmpty) {
                   return 'Please enter bill title';
                 }
                 return null;
@@ -169,7 +194,8 @@ class _AddBillScreenState extends ConsumerState<AddBillScreen> {
 
             TextFormField(
               controller: _amountController,
-              keyboardType: const TextInputType.numberWithOptions(
+              keyboardType:
+                  const TextInputType.numberWithOptions(
                 decimal: true,
               ),
               decoration: const InputDecoration(
@@ -177,21 +203,23 @@ class _AddBillScreenState extends ConsumerState<AddBillScreen> {
                 prefixIcon: Icon(Icons.currency_rupee),
               ),
               validator: (value) {
-                if (value == null || value.trim().isEmpty) {
+                if (value == null ||
+                    value.trim().isEmpty) {
                   return 'Please enter amount';
                 }
 
-                final amount = double.tryParse(value);
+                final amount =
+                    double.tryParse(value);
 
-                if (amount == null || amount <= 0) {
+                if (amount == null ||
+                    amount <= 0) {
                   return 'Enter a valid amount';
                 }
 
                 return null;
               },
             ),
-
-            const SizedBox(height: 20),
+                        const SizedBox(height: 20),
 
             DropdownButtonFormField<String>(
               value: _selectedCategory,
@@ -231,6 +259,21 @@ class _AddBillScreenState extends ConsumerState<AddBillScreen> {
               ),
             ),
 
+            const SizedBox(height: 16),
+
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.access_time),
+              title: const Text('Due Time'),
+              subtitle: Text(
+                _dueTime.format(context),
+              ),
+              trailing: FilledButton.tonal(
+                onPressed: _pickTime,
+                child: const Text('Select'),
+              ),
+            ),
+
             const SizedBox(height: 32),
 
             SizedBox(
@@ -246,7 +289,9 @@ class _AddBillScreenState extends ConsumerState<AddBillScreen> {
                         ),
                       )
                     : Text(
-                        isEditing ? 'Update Bill' : 'Add Bill',
+                        isEditing
+                            ? 'Update Bill'
+                            : 'Add Bill',
                       ),
               ),
             ),

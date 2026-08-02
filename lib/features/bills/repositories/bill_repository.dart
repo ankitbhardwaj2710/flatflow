@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
+import '../../../core/notifications/notification_service.dart';
+import '../../../core/notifications/notification_constants.dart';
 import '../models/bill_model.dart';
 
 class BillRepository {
@@ -54,11 +55,13 @@ class BillRepository {
 
     final flatId = await _getCurrentFlatId();
 
-    await _firestore
-        .collection('flats')
-        .doc(flatId)
-        .collection('bills')
-        .add({
+    final document = _firestore
+    .collection('flats')
+    .doc(flatId)
+    .collection('bills')
+    .doc();
+
+await document.set({
       'title': title.trim(),
       'amount': amount,
       'category': category,
@@ -67,6 +70,13 @@ class BillRepository {
       'createdBy': user.uid,
       'createdAt': FieldValue.serverTimestamp(),
     });
+    await NotificationService.instance.scheduleNotification(
+  id: NotificationConstants.billNotificationOffset +
+      document.id.hashCode.abs(),
+  title: 'Bill Reminder',
+  body: '$title is due today.',
+  scheduledDate: dueDate,
+);
   }
 
   Future<void> updateBill({
@@ -90,53 +100,76 @@ class BillRepository {
       'dueDate': Timestamp.fromDate(dueDate),
       'updatedAt': FieldValue.serverTimestamp(),
     });
+    await NotificationService.instance.cancelNotification(
+  NotificationConstants.billNotificationOffset +
+      billId.hashCode.abs(),
+);
+
+await NotificationService.instance.scheduleNotification(
+  id: NotificationConstants.billNotificationOffset +
+      billId.hashCode.abs(),
+  title: 'Bill Reminder',
+  body: '$title is due now.',
+  scheduledDate: dueDate,
+);
   }
 
-  Future<void> togglePaid({
-    required String billId,
-    required bool isPaid,
-  }) async {
-    final flatId = await _getCurrentFlatId();
+ Future<void> togglePaid({
+  required String billId,
+  required bool isPaid,
+}) async {
+  final flatId = await _getCurrentFlatId();
 
-    await _firestore
-        .collection('flats')
-        .doc(flatId)
-        .collection('bills')
-        .doc(billId)
-        .update({
-      'isPaid': isPaid,
-    });
+  await _firestore
+      .collection('flats')
+      .doc(flatId)
+      .collection('bills')
+      .doc(billId)
+      .update({
+    'isPaid': isPaid,
+  });
+
+  if (isPaid) {
+    await NotificationService.instance.cancelNotification(
+      NotificationConstants.billNotificationOffset +
+          billId.hashCode.abs(),
+    );
+  }
+}
+ Future<void> deleteBill(String billId) async {
+  final user = _firebaseAuth.currentUser;
+
+  if (user == null) {
+    throw Exception('User is not signed in.');
   }
 
-  Future<void> deleteBill(String billId) async {
-    final user = _firebaseAuth.currentUser;
+  final flatId = await _getCurrentFlatId();
 
-    if (user == null) {
-      throw Exception('User is not signed in.');
-    }
+  final memberDocument = await _firestore
+      .collection('flats')
+      .doc(flatId)
+      .collection('members')
+      .doc(user.uid)
+      .get();
 
-    final flatId = await _getCurrentFlatId();
+  final role = memberDocument.data()?['role'] as String?;
 
-    final memberDocument = await _firestore
-        .collection('flats')
-        .doc(flatId)
-        .collection('members')
-        .doc(user.uid)
-        .get();
-
-    final role = memberDocument.data()?['role'] as String?;
-
-    if (role != 'admin') {
-      throw Exception('Only the flat admin can delete bills.');
-    }
-
-    await _firestore
-        .collection('flats')
-        .doc(flatId)
-        .collection('bills')
-        .doc(billId)
-        .delete();
+  if (role != 'admin') {
+    throw Exception('Only the flat admin can delete bills.');
   }
+
+  await NotificationService.instance.cancelNotification(
+    NotificationConstants.billNotificationOffset +
+        billId.hashCode.abs(),
+  );
+
+  await _firestore
+      .collection('flats')
+      .doc(flatId)
+      .collection('bills')
+      .doc(billId)
+      .delete();
+}
 
   Stream<List<BillModel>> watchBills() async* {
     final flatId = await _getCurrentFlatId();

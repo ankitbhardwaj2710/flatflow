@@ -7,4 +7,6 @@ class NotificationConstants {
 
   static const String channelDescription =
       'FlatFlow notification channel';
+
+  static const int billNotificationOffset = 10000;
 }
