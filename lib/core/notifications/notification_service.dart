@@ -1,5 +1,6 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 import 'notification_constants.dart';
 
 class NotificationService {
@@ -11,6 +12,9 @@ class NotificationService {
       FlutterLocalNotificationsPlugin();
 
   Future<void> initialize() async {
+    tz.initializeTimeZones();
+
+tz.setLocalLocation(tz.getLocation('Asia/Kolkata'));
     const androidSettings = AndroidInitializationSettings(
       '@mipmap/ic_launcher',
     );
@@ -69,4 +73,34 @@ class NotificationService {
   Future<void> cancelAllNotifications() async {
     await _notifications.cancelAll();
   }
+
+Future<void> scheduleNotification({
+  required int id,
+  required String title,
+  required String body,
+  required DateTime scheduledDate,
+}) async {
+  if (scheduledDate.isBefore(DateTime.now())) {
+    return;
+  }
+
+  await _notifications.zonedSchedule(
+    id,
+    title,
+    body,
+    tz.TZDateTime.from(scheduledDate, tz.local),
+    const NotificationDetails(
+      android: AndroidNotificationDetails(
+        NotificationConstants.channelId,
+        NotificationConstants.channelName,
+        channelDescription:
+            NotificationConstants.channelDescription,
+        importance: Importance.high,
+        priority: Priority.high,
+      ),
+    ),
+    androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+    matchDateTimeComponents: null,
+  );
+}
 }
