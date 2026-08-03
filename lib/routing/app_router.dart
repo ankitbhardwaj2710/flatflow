@@ -18,6 +18,8 @@ import '../features/expenses/screens/expense_details_screen.dart';
 import '../features/expenses/models/expense_model.dart';
 import '../features/profile/screens/flat_settings_screen.dart';
 import '../features/bills/screens/bills_screen.dart';
+import '../features/insights/screens/insights_screen.dart';
+
 final GoRouter appRouter = GoRouter(
   initialLocation: '/splash',
   routes: [
@@ -56,6 +58,11 @@ final GoRouter appRouter = GoRouter(
       name: 'create-flat',
       builder: (context, state) => const CreateFlatScreen(),
     ),
+    GoRoute(
+  path: '/insights',
+  name: 'insights',
+  builder: (context, state) =>  const InsightsScreen(),
+),
     GoRoute(
       path: '/join-flat',
       name: 'join-flat',
