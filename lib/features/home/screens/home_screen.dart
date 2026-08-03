@@ -10,6 +10,7 @@ import '../providers/home_provider.dart';
 import '../widgets/quick_stats_card.dart';
 import '../widgets/recent_expenses_card.dart';
 import '../widgets/monthly_analytics_card.dart';
+import '../../insights/widgets/dashboard_insights.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -158,7 +159,9 @@ class HomeScreen extends ConsumerWidget {
                         ),
 
                         const SizedBox(height: 14),
+                        const DashboardInsights(),
 
+                        const SizedBox(height: 24),
                         const RecentExpensesCard(),
                         const SizedBox(height: 28),
 
@@ -170,15 +173,15 @@ class HomeScreen extends ConsumerWidget {
 
                         const SizedBox(height: 14),
 
-                         Row(
+                        Row(
                           children: [
                             Expanded(
                               child: _QuickActionCard(
                                 icon: Icons.add_rounded,
                                 label: 'Add expense',
-                                 onTap: () {
-          context.push('/add-expense');
-        },
+                                onTap: () {
+                                  context.push('/add-expense');
+                                },
                               ),
                             ),
                             SizedBox(width: 12),
@@ -187,9 +190,8 @@ class HomeScreen extends ConsumerWidget {
                                 icon: Icons.receipt_long_rounded,
                                 label: 'Add bill',
                                 onTap: () {
-          context.push('/bills');
-        },
-
+                                  context.push('/bills');
+                                },
                               ),
                             ),
                             SizedBox(width: 12),
@@ -198,8 +200,8 @@ class HomeScreen extends ConsumerWidget {
                                 icon: Icons.shopping_cart_outlined,
                                 label: 'Grocery',
                                 onTap: () {
-          context.push('/grocery');
-        },
+                                  context.push('/grocery');
+                                },
                               ),
                             ),
                           ],

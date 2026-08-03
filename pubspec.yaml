@@ -46,7 +46,11 @@ dependencies:
   firebase_auth: 6.1.0
   cloud_firestore: 6.0.2
   google_sign_in: 7.2.0 
+  excel: ^4.0.6
+  path_provider: ^2.1.5
+  share_plus: ^12.0.0
 
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -31,6 +31,7 @@ tz.setLocalLocation(tz.getLocation('Asia/Kolkata'));
 
     if (androidPlugin != null) {
       await androidPlugin.requestNotificationsPermission();
+      await androidPlugin.requestExactAlarmsPermission();
 
       await androidPlugin.createNotificationChannel(
         const AndroidNotificationChannel(
@@ -80,7 +81,14 @@ Future<void> scheduleNotification({
   required String body,
   required DateTime scheduledDate,
 }) async {
+  print('========================');
+  print('NOW      : ${DateTime.now()}');
+  print('SCHEDULE : $scheduledDate');
+  print('TZ DATE  : ${tz.TZDateTime.from(scheduledDate, tz.local)}');
+  print('========================');
+
   if (scheduledDate.isBefore(DateTime.now())) {
+    print('❌ Scheduled date is in the past');
     return;
   }
 
@@ -93,14 +101,22 @@ Future<void> scheduleNotification({
       android: AndroidNotificationDetails(
         NotificationConstants.channelId,
         NotificationConstants.channelName,
-        channelDescription:
-            NotificationConstants.channelDescription,
-        importance: Importance.high,
-        priority: Priority.high,
+        channelDescription: NotificationConstants.channelDescription,
+        importance: Importance.max,
+        priority: Priority.max,
       ),
     ),
-    androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-    matchDateTimeComponents: null,
+    androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
   );
+
+  print('✅ Notification Scheduled');
 }
-}
+Future<void> printPendingNotifications() async {
+  final pending = await _notifications.pendingNotificationRequests();
+
+  print('Pending Notifications: ${pending.length}');
+
+  for (final item in pending) {
+    print('${item.id} -> ${item.title}');
+  }
+}}

@@ -77,6 +77,12 @@ await document.set({
   body: '$title is due today.',
   scheduledDate: dueDate,
 );
+await NotificationService.instance.printPendingNotifications();
+await NotificationService.instance.showInstantNotification(
+  id: 999,
+  title: 'Test Notification',
+  body: 'Instant notification works',
+);
   }
 
   Future<void> updateBill({
@@ -111,6 +117,11 @@ await NotificationService.instance.scheduleNotification(
   title: 'Bill Reminder',
   body: '$title is due now.',
   scheduledDate: dueDate,
+);
+await NotificationService.instance.showInstantNotification(
+  id: 999,
+  title: 'Test Notification',
+  body: 'Instant notification works',
 );
   }
 
