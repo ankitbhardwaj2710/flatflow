@@ -20,7 +20,22 @@ class SettlementScreen extends ConsumerWidget {
       body: settlements.when(
         loading: () => const Center(child: CircularProgressIndicator()),
 
-        error: (e, _) => Center(child: Text(e.toString())),
+        error: (e, st) {
+  debugPrint(e.toString());
+  debugPrint(st.toString());
+
+  return Scaffold(
+    body: Padding(
+      padding: const EdgeInsets.all(20),
+      child: SingleChildScrollView(
+        child: Text(
+          '$e\n\n$st',
+          style: const TextStyle(fontSize: 12),
+        ),
+      ),
+    ),
+  );
+},
 
         data: (list) {
           if (list.isEmpty) {

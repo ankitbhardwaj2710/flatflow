@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../expenses/models/expense_model.dart';
 import '../models/settlement_model.dart';
+import '../services/settlement_calculator.dart';
 
 class SettlementRepository {
   final FirebaseFirestore _firestore;
@@ -16,9 +17,7 @@ class SettlementRepository {
   Future<List<SettlementModel>> calculateSettlements() async {
     final user = _auth.currentUser;
 
-    if (user == null) {
-      return [];
-    }
+    if (user == null) return [];
 
     final userDoc = await _firestore
         .collection('users')
@@ -26,11 +25,13 @@ class SettlementRepository {
         .get();
 
     final flatId =
-        userDoc.data()?['currentFlatId'];
+        userDoc.data()?['currentFlatId'] as String?;
 
-    if (flatId == null) {
-      return [];
-    }
+    if (flatId == null) return [];
+
+    //==========================
+    // Members
+    //==========================
 
     final membersSnapshot = await _firestore
         .collection('flats')
@@ -38,84 +39,80 @@ class SettlementRepository {
         .collection('members')
         .get();
 
+    final memberNames = <String, String>{};
+
+    for (final doc in membersSnapshot.docs) {
+      memberNames[doc.id] =
+          (doc.data()['name'] ?? 'Unknown')
+              .toString();
+    }
+
+    //==========================
+    // Expenses
+    //==========================
+
     final expenseSnapshot = await _firestore
         .collection('flats')
         .doc(flatId)
         .collection('expenses')
         .get();
 
-    final members = membersSnapshot.docs;
-
     final expenses = expenseSnapshot.docs
         .map((e) => ExpenseModel.fromFirestore(e))
         .toList();
 
-    final List<SettlementModel> settlements = [];
+    //==========================
+    // Settlements
+    //==========================
 
-    for (final member in members) {
-      if (member.id == user.uid) continue;
+    final settlementSnapshot =
+        await _firestore
+            .collection('flats')
+            .doc(flatId)
+            .collection('settlements')
+            .get();
 
-      final memberName =
-          member.data()['name'] ?? 'Member';
+    final settlements = settlementSnapshot.docs
+        .map((e) => e.data())
+        .toList();
 
-      double owesYou = 0;
-      double youOwe = 0;
-
-      for (final expense in expenses) {
-        final split =
-            expense.splits[member.id] ?? 0;
-
-        if (expense.paidBy == user.uid) {
-          owesYou += split;
-        }
-
-        if (expense.paidBy == member.id) {
-          youOwe +=
-              expense.splits[user.uid] ?? 0;
-        }
-      }
-
-      settlements.add(
-        SettlementModel(
-          memberId: member.id,
-          memberName: memberName,
-          owesYou: owesYou,
-          youOwe: youOwe,
-        ),
-      );
-    }
-
-    return settlements;
+    return SettlementCalculator.calculate(
+      currentUserId: user.uid,
+      memberNames: memberNames,
+      expenses: expenses,
+      settlements: settlements,
+    );
   }
+
   Future<void> markAsPaid({
-  required String toUserId,
-  required double amount,
-}) async {
-  final user = _auth.currentUser;
+    required String toUserId,
+    required double amount,
+  }) async {
+    final user = _auth.currentUser;
 
-  if (user == null) return;
+    if (user == null) return;
 
-  final userDoc = await _firestore
-      .collection('users')
-      .doc(user.uid)
-      .get();
+    final userDoc = await _firestore
+        .collection('users')
+        .doc(user.uid)
+        .get();
 
-  final flatId =
-      userDoc.data()?['currentFlatId'];
+    final flatId =
+        userDoc.data()?['currentFlatId'] as String?;
 
-  if (flatId == null) return;
+    if (flatId == null) return;
 
-  await _firestore
-      .collection('flats')
-      .doc(flatId)
-      .collection('settlements')
-      .add({
-    'from': user.uid,
-    'to': toUserId,
-    'amount': amount,
-    'status': 'paid',
-    'createdAt':
-        FieldValue.serverTimestamp(),
-  });
-}
+    await _firestore
+        .collection('flats')
+        .doc(flatId)
+        .collection('settlements')
+        .add({
+      'paidBy': user.uid,
+      'paidTo': toUserId,
+      'amount': amount,
+      'status': 'paid',
+      'createdAt':
+          FieldValue.serverTimestamp(),
+    });
+  }
 }
