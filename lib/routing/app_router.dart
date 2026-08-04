@@ -19,6 +19,8 @@ import '../features/expenses/models/expense_model.dart';
 import '../features/profile/screens/flat_settings_screen.dart';
 import '../features/bills/screens/bills_screen.dart';
 import '../features/insights/screens/insights_screen.dart';
+import '../features/settlement/screens/settlement_screen.dart';
+import '../features/settlement/screens/settlement_history_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/splash',
@@ -54,6 +56,11 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) => const FlatSetupScreen(),
     ),
     GoRoute(
+  path: '/settlement-history',
+  builder: (_, __) =>
+      const SettlementHistoryScreen(),
+),
+    GoRoute(
       path: '/create-flat',
       name: 'create-flat',
       builder: (context, state) => const CreateFlatScreen(),
@@ -77,6 +84,11 @@ GoRoute(
   path: '/bills',
   name: 'bills',
   builder: (context, state) => const BillsScreen(),
+),
+GoRoute(
+  path: '/settlement',
+  builder: (context, state) =>
+      const SettlementScreen(),
 ),
 GoRoute(
   path: '/add-expense',

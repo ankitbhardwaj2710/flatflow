@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../home/providers/home_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -415,7 +416,67 @@ class ProfileScreen extends ConsumerWidget {
                 ),
               ],
             ),
+const Divider(height: 1),
+_SettingsTile(
+  icon: Icons.account_balance_wallet_outlined,
+  title: 'Settlement',
+  subtitle: 'Who owes whom',
+  onTap: () {
+    context.push('/settlement');
+  },
+),
+const Divider(height: 1),
+_SettingsTile(
+  icon: Icons.history,
+  title: 'Settlement History',
+  subtitle: 'View all settlements',
+  onTap: () {
+    context.push('/settlement-history');
+  },
+),
+const Divider(height: 1),
+_SettingsTile(
+  icon: Icons.dark_mode_outlined,
+  title: 'Dark Mode',
+  subtitle: 'Coming Soon',
+  onTap: () {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Dark Mode coming soon'),
+      ),
+    );
+  },
+),
 
+const Divider(height: 1),
+
+_SettingsTile(
+  icon: Icons.star_rate_rounded,
+  title: 'Rate App',
+  subtitle: 'Support FlatFlow',
+  onTap: () async {
+    final uri = Uri.parse(
+      'https://play.google.com/store',
+    );
+
+    await launchUrl(uri);
+  },
+),
+
+const Divider(height: 1),
+
+_SettingsTile(
+  icon: Icons.support_agent_rounded,
+  title: 'Contact Support',
+  subtitle: 'Email developer',
+  onTap: () async {
+    final uri = Uri.parse(
+      'mailto:ankitbhardwaj94684@example.com?subject=FlatFlow Support',
+    );
+
+    await launchUrl(uri);
+  },
+),
             const SizedBox(height: 20),
             _SettingsTile(
               icon: Icons.auto_awesome,
