@@ -11,6 +11,7 @@ import '../widgets/quick_stats_card.dart';
 import '../widgets/recent_expenses_card.dart';
 import '../widgets/monthly_analytics_card.dart';
 import '../../insights/widgets/dashboard_insights.dart';
+import '../../insights/widgets/charts/expense_bar_chart.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -151,17 +152,21 @@ class HomeScreen extends ConsumerWidget {
                         else
                           _MemberBalancesCard(balances: memberBalances),
                         const SizedBox(height: 28),
+const SizedBox(height: 14),
+const ExpenseBarChart(),
 
+const SizedBox(height: 24),
+                        const DashboardInsights(),
+                        const SizedBox(height: 24),
                         Text(
                           'Recent Expenses',
                           style: Theme.of(context).textTheme.titleLarge
                               ?.copyWith(fontWeight: FontWeight.w800),
                         ),
 
-                        const SizedBox(height: 14),
-                        const DashboardInsights(),
+                        
 
-                        const SizedBox(height: 24),
+                        
                         const RecentExpensesCard(),
                         const SizedBox(height: 28),
 
