@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../expenses/models/expense_model.dart';
 import '../models/settlement_model.dart';
 import '../services/settlement_calculator.dart';
+import '../../activity/repository/activity_repository.dart';
 
 class SettlementRepository {
   final FirebaseFirestore _firestore;
@@ -114,5 +115,16 @@ class SettlementRepository {
       'createdAt':
           FieldValue.serverTimestamp(),
     });
+    await _activityRepository.addActivity(
+  type: 'settlement',
+  title: 'Settlement Completed',
+  description:
+      'Paid ₹${amount.toStringAsFixed(2)}',
+);
   }
+  final ActivityRepository _activityRepository =
+    ActivityRepository(
+      FirebaseFirestore.instance,
+      FirebaseAuth.instance,
+    );
 }
