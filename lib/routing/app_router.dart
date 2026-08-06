@@ -21,6 +21,7 @@ import '../features/bills/screens/bills_screen.dart';
 import '../features/insights/screens/insights_screen.dart';
 import '../features/settlement/screens/settlement_screen.dart';
 import '../features/settlement/screens/settlement_history_screen.dart';
+import '../../features/activity/screens/activity_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/splash',
@@ -55,6 +56,11 @@ final GoRouter appRouter = GoRouter(
       name: 'flat-setup',
       builder: (context, state) => const FlatSetupScreen(),
     ),
+    GoRoute(
+  path: '/activity',
+  builder: (context, state) =>
+      const ActivityScreen(),
+),
     GoRoute(
   path: '/settlement-history',
   builder: (_, __) =>

@@ -12,7 +12,7 @@ import '../widgets/recent_expenses_card.dart';
 import '../widgets/monthly_analytics_card.dart';
 import '../../insights/widgets/dashboard_insights.dart';
 import '../../insights/widgets/charts/expense_bar_chart.dart';
-
+import '../../activity/screens/activity_screen.dart';
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -152,10 +152,10 @@ class HomeScreen extends ConsumerWidget {
                         else
                           _MemberBalancesCard(balances: memberBalances),
                         const SizedBox(height: 28),
-const SizedBox(height: 14),
-const ExpenseBarChart(),
+                        const SizedBox(height: 14),
+                        const ExpenseBarChart(),
 
-const SizedBox(height: 24),
+                        const SizedBox(height: 24),
                         const DashboardInsights(),
                         const SizedBox(height: 24),
                         Text(
@@ -164,9 +164,6 @@ const SizedBox(height: 24),
                               ?.copyWith(fontWeight: FontWeight.w800),
                         ),
 
-                        
-
-                        
                         const RecentExpensesCard(),
                         const SizedBox(height: 28),
 
@@ -302,11 +299,32 @@ class _Header extends StatelessWidget {
               ),
             ],
           ),
+        ), 
+        PopupMenuButton<String>(
+  icon: const Icon(Icons.more_vert_sharp),
+  onSelected: (value) {
+    if (value == 'activity') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const ActivityScreen(),
         ),
-        IconButton.filledTonal(
-          onPressed: () {},
-          icon: const Icon(Icons.notifications_none_rounded),
-        ),
+      );
+    }
+  },
+  itemBuilder: (_) => const [
+    PopupMenuItem(
+      value: 'activity',
+      child: Row(
+        children: [
+          Icon(Icons.history),
+          SizedBox(width: 10),
+          Text('Activity Timeline'),
+        ],
+      ),
+    ),
+  ],
+),
       ],
     );
   }

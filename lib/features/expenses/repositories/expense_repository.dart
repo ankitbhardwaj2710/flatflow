@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../models/expense_model.dart';
 import '../models/settlement_model.dart';
+import '../../activity/repository/activity_repository.dart';
 
 class ExpenseRepository {
   final FirebaseFirestore _firestore;
@@ -80,6 +81,11 @@ class ExpenseRepository {
           'createdBy': user.uid,
           'createdAt': FieldValue.serverTimestamp(),
         });
+    await _activityRepository.addActivity(
+      type: 'expense',
+      title: 'Expense Added',
+      description: '$title • ₹${amount.toStringAsFixed(2)}',
+    );
   }
 
   Future<void> updateExpense({
@@ -144,42 +150,42 @@ class ExpenseRepository {
         );
   }
 
- Future<void> deleteExpense(String expenseId) async {
-  final user = _firebaseAuth.currentUser;
+  Future<void> deleteExpense(String expenseId) async {
+    final user = _firebaseAuth.currentUser;
 
-  if (user == null) {
-    throw Exception('User is not signed in.');
+    if (user == null) {
+      throw Exception('User is not signed in.');
+    }
+
+    final flatId = await _getCurrentFlatId();
+
+    final expenseReference = _firestore
+        .collection('flats')
+        .doc(flatId)
+        .collection('expenses')
+        .doc(expenseId);
+
+    final expenseDocument = await expenseReference.get();
+
+    if (!expenseDocument.exists) {
+      throw Exception('Expense not found.');
+    }
+
+    final memberDocument = await _firestore
+        .collection('flats')
+        .doc(flatId)
+        .collection('members')
+        .doc(user.uid)
+        .get();
+
+    final role = memberDocument.data()?['role'] as String?;
+
+    if (role != 'admin') {
+      throw Exception('Only the flat admin can delete expenses.');
+    }
+
+    await expenseReference.delete();
   }
-
-  final flatId = await _getCurrentFlatId();
-
-  final expenseReference = _firestore
-      .collection('flats')
-      .doc(flatId)
-      .collection('expenses')
-      .doc(expenseId);
-
-  final expenseDocument = await expenseReference.get();
-
-  if (!expenseDocument.exists) {
-    throw Exception('Expense not found.');
-  }
-
-  final memberDocument = await _firestore
-      .collection('flats')
-      .doc(flatId)
-      .collection('members')
-      .doc(user.uid)
-      .get();
-
-  final role = memberDocument.data()?['role'] as String?;
-
-  if (role != 'admin') {
-    throw Exception('Only the flat admin can delete expenses.');
-  }
-
-  await expenseReference.delete();
-}
 
   Future<void> addSettlement({
     required String paidBy,
@@ -251,4 +257,9 @@ class ExpenseRepository {
 
     return splits;
   }
+
+  final ActivityRepository _activityRepository = ActivityRepository(
+    FirebaseFirestore.instance,
+    FirebaseAuth.instance,
+  );
 }

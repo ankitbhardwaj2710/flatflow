@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../../core/notifications/notification_service.dart';
 import '../../../core/notifications/notification_constants.dart';
 import '../models/bill_model.dart';
+import '../../activity/repository/activity_repository.dart';
 
 class BillRepository {
   final FirebaseFirestore _firestore;
@@ -82,6 +83,12 @@ await NotificationService.instance.showInstantNotification(
   id: 999,
   title: 'Test Notification',
   body: 'Instant notification works',
+);
+await _activityRepository.addActivity(
+  type: 'bill',
+  title: 'Bill Added',
+  description:
+      '$title • ₹${amount.toStringAsFixed(2)}',
 );
   }
 
@@ -196,4 +203,9 @@ await NotificationService.instance.showInstantNotification(
               snapshot.docs.map(BillModel.fromFirestore).toList(),
         );
   }
+  final ActivityRepository _activityRepository =
+    ActivityRepository(
+      FirebaseFirestore.instance,
+      FirebaseAuth.instance,
+    );
 }
