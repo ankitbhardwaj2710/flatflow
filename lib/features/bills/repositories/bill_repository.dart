@@ -84,7 +84,7 @@ await NotificationService.instance.showInstantNotification(
   title: 'Test Notification',
   body: 'Instant notification works',
 );
-await _activityRepository.addActivity(
+await _activityRepository.addActivity( 
   type: 'bill',
   title: 'Bill Added',
   description:
