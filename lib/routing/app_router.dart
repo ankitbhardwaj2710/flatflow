@@ -22,6 +22,7 @@ import '../features/insights/screens/insights_screen.dart';
 import '../features/settlement/screens/settlement_screen.dart';
 import '../features/settlement/screens/settlement_history_screen.dart';
 import '../../features/activity/screens/activity_screen.dart';
+import '../../features/notifications/screens/notification_screen.dart';
 
 final GoRouter appRouter = GoRouter(
   initialLocation: '/splash',
@@ -41,6 +42,11 @@ final GoRouter appRouter = GoRouter(
       name: 'login',
       builder: (context, state) => const LoginScreen(),
     ),
+    GoRoute(
+  path: '/notifications',
+  builder: (context, state) =>
+      const NotificationScreen(),
+),
     GoRoute(
       path: '/signup',
       name: 'signup',

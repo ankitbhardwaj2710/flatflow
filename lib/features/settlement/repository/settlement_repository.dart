@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
+import '../../notifications/repository/app_notification_repository.dart';
 import '../../expenses/models/expense_model.dart';
 import '../models/settlement_model.dart';
 import '../services/settlement_calculator.dart';
@@ -121,9 +121,20 @@ class SettlementRepository {
   description:
       'Paid ₹${amount.toStringAsFixed(2)}',
 );
+await _notificationRepository.addNotification(
+  type: 'settlement',
+  title: 'Settlement Completed',
+  description:
+      'Paid ₹${amount.toStringAsFixed(2)}',
+);
   }
   final ActivityRepository _activityRepository =
     ActivityRepository(
+      FirebaseFirestore.instance,
+      FirebaseAuth.instance,
+    );
+    final AppNotificationRepository _notificationRepository =
+    AppNotificationRepository(
       FirebaseFirestore.instance,
       FirebaseAuth.instance,
     );
