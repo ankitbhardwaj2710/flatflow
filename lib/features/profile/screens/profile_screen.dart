@@ -26,7 +26,86 @@ class ProfileScreen extends ConsumerWidget {
       const SnackBar(content: Text('Invite code copied to clipboard.')),
     );
   }
+Future<void> _showThemeSelector(
+  BuildContext context,
+  WidgetRef ref,
+) async {
+  final currentTheme =
+      ref.read(themeModeProvider);
 
+  await showModalBottomSheet<void>(
+    context: context,
+    showDragHandle: true,
+    builder: (sheetContext) {
+      return SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const ListTile(
+              title: Text(
+                'Choose Appearance',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                ),
+              ),
+            ),
+
+            RadioListTile<ThemeMode>(
+              value: ThemeMode.system,
+              groupValue: currentTheme,
+              title: const Text('System Default'),
+              subtitle: const Text(
+                'Follow your device settings',
+              ),
+              onChanged: (value) {
+                if (value != null) {
+                  ref
+                      .read(themeModeProvider.notifier)
+                      .setTheme(value);
+
+                  Navigator.pop(sheetContext);
+                }
+              },
+            ),
+
+            RadioListTile<ThemeMode>(
+              value: ThemeMode.light,
+              groupValue: currentTheme,
+              title: const Text('Light'),
+              onChanged: (value) {
+                if (value != null) {
+                  ref
+                      .read(themeModeProvider.notifier)
+                      .setTheme(value);
+
+                  Navigator.pop(sheetContext);
+                }
+              },
+            ),
+
+            RadioListTile<ThemeMode>(
+              value: ThemeMode.dark,
+              groupValue: currentTheme,
+              title: const Text('Dark'),
+              onChanged: (value) {
+                if (value != null) {
+                  ref
+                      .read(themeModeProvider.notifier)
+                      .setTheme(value);
+
+                  Navigator.pop(sheetContext);
+                }
+              },
+            ),
+
+            const SizedBox(height: 12),
+          ],
+        ),
+      );
+    },
+  );
+}
   Future<void> _logout(BuildContext context, WidgetRef ref) async {
     final shouldLogout = await showDialog<bool>(
       context: context,
@@ -436,23 +515,11 @@ _SettingsTile(
 ),
 const Divider(height: 1),
 _SettingsTile(
-  icon: Icons.dark_mode_outlined,
-  title: 'Dark Mode',
-  subtitle: 'Switch between light and dark theme',
+  icon: Icons.palette_outlined,
+  title: 'Appearance',
+  subtitle: 'Light, dark or system theme',
   onTap: () {
-    final currentMode =
-        ref.read(themeModeProvider);
-
-    final isDark =
-        currentMode == ThemeMode.dark;
-
-    ref
-        .read(themeModeProvider.notifier)
-        .setTheme(
-          isDark
-              ? ThemeMode.light
-              : ThemeMode.dark,
-        );
+    _showThemeSelector(context, ref);
   },
 ),
 
