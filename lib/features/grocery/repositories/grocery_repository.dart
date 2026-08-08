@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../notifications/repository/app_notification_repository.dart';
 import '../models/grocery_item_model.dart';
-
+  
 class GroceryRepository {
   final FirebaseFirestore _firestore;
   final FirebaseAuth _firebaseAuth;
