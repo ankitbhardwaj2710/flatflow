@@ -522,7 +522,6 @@ _SettingsTile(
     _showThemeSelector(context, ref);
   },
 ),
-
 const Divider(height: 1),
 
 _SettingsTile(
