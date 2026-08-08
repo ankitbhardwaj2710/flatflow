@@ -13,6 +13,7 @@ import '../widgets/monthly_analytics_card.dart';
 import '../../insights/widgets/dashboard_insights.dart';
 import '../../insights/widgets/charts/expense_bar_chart.dart';
 import '../../activity/screens/activity_screen.dart';
+import '../../notifications/providers/app_notification_provider.dart';
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -300,6 +301,26 @@ class _Header extends StatelessWidget {
             ],
           ),
         ), 
+        IconButton.filledTonal(
+  onPressed: () {
+    context.push('/notifications');
+  },
+  icon: Consumer(
+    builder: (context, ref, _) {
+      final unread = ref.watch(
+        unreadNotificationCountProvider,
+      );
+
+      return Badge(
+        isLabelVisible: unread > 0,
+        label: Text('$unread'),
+        child: const Icon(
+          Icons.notifications_none,
+        ),
+      );
+    },
+  ),
+),
         PopupMenuButton<String>(
   icon: const Icon(Icons.more_vert_sharp),
   onSelected: (value) {

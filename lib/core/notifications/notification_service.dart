@@ -1,12 +1,14 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+
 import 'notification_constants.dart';
 
 class NotificationService {
   NotificationService._();
 
-  static final NotificationService instance = NotificationService._();
+  static final NotificationService instance =
+      NotificationService._();
 
   final FlutterLocalNotificationsPlugin _notifications =
       FlutterLocalNotificationsPlugin();
@@ -14,8 +16,12 @@ class NotificationService {
   Future<void> initialize() async {
     tz.initializeTimeZones();
 
-tz.setLocalLocation(tz.getLocation('Asia/Kolkata'));
-    const androidSettings = AndroidInitializationSettings(
+    tz.setLocalLocation(
+      tz.getLocation('Asia/Kolkata'),
+    );
+
+    const androidSettings =
+        AndroidInitializationSettings(
       '@mipmap/ic_launcher',
     );
 
@@ -25,19 +31,25 @@ tz.setLocalLocation(tz.getLocation('Asia/Kolkata'));
 
     await _notifications.initialize(settings);
 
-    final androidPlugin = _notifications
-        .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>();
+    final androidPlugin =
+        _notifications
+            .resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin>();
 
     if (androidPlugin != null) {
-      await androidPlugin.requestNotificationsPermission();
-      await androidPlugin.requestExactAlarmsPermission();
+      await androidPlugin
+          .requestNotificationsPermission();
 
-      await androidPlugin.createNotificationChannel(
+      await androidPlugin
+          .requestExactAlarmsPermission();
+
+      await androidPlugin
+          .createNotificationChannel(
         const AndroidNotificationChannel(
           NotificationConstants.channelId,
           NotificationConstants.channelName,
-          description: NotificationConstants.channelDescription,
+          description:
+              NotificationConstants.channelDescription,
           importance: Importance.high,
         ),
       );
@@ -53,7 +65,8 @@ tz.setLocalLocation(tz.getLocation('Asia/Kolkata'));
       android: AndroidNotificationDetails(
         NotificationConstants.channelId,
         NotificationConstants.channelName,
-        channelDescription: NotificationConstants.channelDescription,
+        channelDescription:
+            NotificationConstants.channelDescription,
         importance: Importance.high,
         priority: Priority.high,
       ),
@@ -67,7 +80,9 @@ tz.setLocalLocation(tz.getLocation('Asia/Kolkata'));
     );
   }
 
-  Future<void> cancelNotification(int id) async {
+  Future<void> cancelNotification(
+    int id,
+  ) async {
     await _notifications.cancel(id);
   }
 
@@ -75,48 +90,45 @@ tz.setLocalLocation(tz.getLocation('Asia/Kolkata'));
     await _notifications.cancelAll();
   }
 
-Future<void> scheduleNotification({
-  required int id,
-  required String title,
-  required String body,
-  required DateTime scheduledDate,
-}) async {
-  print('========================');
-  print('NOW      : ${DateTime.now()}');
-  print('SCHEDULE : $scheduledDate');
-  print('TZ DATE  : ${tz.TZDateTime.from(scheduledDate, tz.local)}');
-  print('========================');
+  Future<void> scheduleNotification({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime scheduledDate,
+  }) async {
+    final scheduled =
+        tz.TZDateTime.from(
+      scheduledDate,
+      tz.local,
+    );
 
-  if (scheduledDate.isBefore(DateTime.now())) {
-    print('❌ Scheduled date is in the past');
-    return;
-  }
+    if (scheduled.isBefore(tz.TZDateTime.now(tz.local))) {
+      return;
+    }
 
-  await _notifications.zonedSchedule(
-    id,
-    title,
-    body,
-    tz.TZDateTime.from(scheduledDate, tz.local),
-    const NotificationDetails(
-      android: AndroidNotificationDetails(
-        NotificationConstants.channelId,
-        NotificationConstants.channelName,
-        channelDescription: NotificationConstants.channelDescription,
-        importance: Importance.max,
-        priority: Priority.max,
+    await _notifications.zonedSchedule(
+      id,
+      title,
+      body,
+      scheduled,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          NotificationConstants.channelId,
+          NotificationConstants.channelName,
+          channelDescription:
+              NotificationConstants.channelDescription,
+          importance: Importance.max,
+          priority: Priority.max,
+        ),
       ),
-    ),
-    androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-  );
-
-  print('✅ Notification Scheduled');
-}
-Future<void> printPendingNotifications() async {
-  final pending = await _notifications.pendingNotificationRequests();
-
-  print('Pending Notifications: ${pending.length}');
-
-  for (final item in pending) {
-    print('${item.id} -> ${item.title}');
+      androidScheduleMode:
+          AndroidScheduleMode.inexactAllowWhileIdle,
+    );
   }
-}}
+
+  Future<List<PendingNotificationRequest>>
+      getPendingNotifications() async {
+    return _notifications
+        .pendingNotificationRequests();
+  }
+}

@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
+import '../../notifications/repository/app_notification_repository.dart';
 import '../models/expense_model.dart';
 import '../models/settlement_model.dart';
 import '../../activity/repository/activity_repository.dart';
@@ -86,6 +86,12 @@ class ExpenseRepository {
       title: 'Expense Added',
       description: '$title • ₹${amount.toStringAsFixed(2)}',
     );
+    await _notificationRepository.addNotification(
+  type: 'expense',
+  title: 'Expense Added',
+  description:
+      '$title • ₹${amount.toStringAsFixed(2)}',
+);
   }
 
   Future<void> updateExpense({
@@ -134,6 +140,12 @@ class ExpenseRepository {
           'note': note.trim(),
           'updatedAt': FieldValue.serverTimestamp(),
         });
+        await _notificationRepository.addNotification(
+  type: 'expense',
+  title: 'Expense Updated',
+  description:
+      '$title • ₹${amount.toStringAsFixed(2)}',
+);
   }
 
   Stream<List<ExpenseModel>> watchExpenses() async* {
@@ -262,4 +274,9 @@ class ExpenseRepository {
     FirebaseFirestore.instance,
     FirebaseAuth.instance,
   );
+  final AppNotificationRepository _notificationRepository =
+    AppNotificationRepository(
+      FirebaseFirestore.instance,
+      FirebaseAuth.instance,
+    );
 }

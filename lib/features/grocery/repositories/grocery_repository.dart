@@ -1,13 +1,22 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../../notifications/repository/app_notification_repository.dart';
 import '../models/grocery_item_model.dart';
-
+  
 class GroceryRepository {
   final FirebaseFirestore _firestore;
   final FirebaseAuth _firebaseAuth;
 
-  GroceryRepository(this._firestore, this._firebaseAuth);
+  final AppNotificationRepository _notificationRepository;
+
+  GroceryRepository(
+    this._firestore,
+    this._firebaseAuth,
+  ) : _notificationRepository = AppNotificationRepository(
+          _firestore,
+          _firebaseAuth,
+        );
 
   Future<String> _getCurrentFlatId() async {
     final user = _firebaseAuth.currentUser;
@@ -25,7 +34,8 @@ class GroceryRepository {
       throw Exception('User profile not found.');
     }
 
-    final flatId = userDocument.data()?['currentFlatId'] as String?;
+    final flatId =
+        userDocument.data()?['currentFlatId'] as String?;
 
     if (flatId == null || flatId.isEmpty) {
       throw Exception('No active flat found.');
@@ -34,7 +44,10 @@ class GroceryRepository {
     return flatId;
   }
 
-  Future<void> addItem({required String name, String quantity = ''}) async {
+  Future<void> addItem({
+    required String name,
+    String quantity = '',
+  }) async {
     final user = _firebaseAuth.currentUser;
 
     if (user == null) {
@@ -59,14 +72,23 @@ class GroceryRepository {
         .doc(flatId)
         .collection('groceryItems')
         .add({
-          'name': trimmedName,
-          'quantity': trimmedQuantity,
-          'isBought': false,
-          'addedBy': user.uid,
-          'boughtBy': null,
-          'createdAt': FieldValue.serverTimestamp(),
-          'boughtAt': null,
-        });
+      'name': trimmedName,
+      'quantity': trimmedQuantity,
+      'isBought': false,
+      'addedBy': user.uid,
+      'boughtBy': null,
+      'createdAt': FieldValue.serverTimestamp(),
+      'boughtAt': null,
+    });
+
+    // In-app notification
+    await _notificationRepository.addNotification(
+      type: 'grocery',
+      title: 'Grocery Added',
+      description: trimmedQuantity.isEmpty
+          ? trimmedName
+          : '$trimmedName • $trimmedQuantity',
+    );
   }
 
   Stream<List<GroceryItemModel>> watchItems() async* {
@@ -76,15 +98,21 @@ class GroceryRepository {
         .collection('flats')
         .doc(flatId)
         .collection('groceryItems')
-        .orderBy('createdAt', descending: true)
+        .orderBy(
+          'createdAt',
+          descending: true,
+        )
         .snapshots()
         .map(
-          (snapshot) =>
-              snapshot.docs.map(GroceryItemModel.fromFirestore).toList(),
+          (snapshot) => snapshot.docs
+              .map(GroceryItemModel.fromFirestore)
+              .toList(),
         );
   }
 
-  Future<void> toggleBought(GroceryItemModel item) async {
+  Future<void> toggleBought(
+    GroceryItemModel item,
+  ) async {
     final user = _firebaseAuth.currentUser;
 
     if (user == null) {
@@ -101,13 +129,28 @@ class GroceryRepository {
         .collection('groceryItems')
         .doc(item.id)
         .update({
-          'isBought': newBoughtStatus,
-          'boughtBy': newBoughtStatus ? user.uid : null,
-          'boughtAt': newBoughtStatus ? FieldValue.serverTimestamp() : null,
-        });
+      'isBought': newBoughtStatus,
+      'boughtBy':
+          newBoughtStatus ? user.uid : null,
+      'boughtAt': newBoughtStatus
+          ? FieldValue.serverTimestamp()
+          : null,
+    });
+
+    if (newBoughtStatus) {
+      await _notificationRepository.addNotification(
+        type: 'grocery',
+        title: 'Grocery Bought',
+        description: item.quantity.isEmpty
+            ? item.name
+            : '${item.name} • ${item.quantity}',
+      );
+    }
   }
 
-  Future<void> deleteItem(String itemId) async {
+  Future<void> deleteItem(
+    String itemId,
+  ) async {
     final user = _firebaseAuth.currentUser;
 
     if (user == null) {
@@ -122,7 +165,8 @@ class GroceryRepository {
         .collection('groceryItems')
         .doc(itemId);
 
-    final itemDocument = await itemReference.get();
+    final itemDocument =
+        await itemReference.get();
 
     if (!itemDocument.exists) {
       throw Exception('Grocery item not found.');
@@ -130,7 +174,8 @@ class GroceryRepository {
 
     final itemData = itemDocument.data()!;
 
-    final addedBy = itemData['addedBy'] as String?;
+    final addedBy =
+        itemData['addedBy'] as String?;
 
     final memberDocument = await _firestore
         .collection('flats')
@@ -139,9 +184,11 @@ class GroceryRepository {
         .doc(user.uid)
         .get();
 
-    final role = memberDocument.data()?['role'] as String?;
+    final role =
+        memberDocument.data()?['role'] as String?;
 
-    final canDelete = addedBy == user.uid || role == 'admin';
+    final canDelete =
+        addedBy == user.uid || role == 'admin';
 
     if (!canDelete) {
       throw Exception(
