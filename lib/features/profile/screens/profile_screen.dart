@@ -350,7 +350,7 @@ Future<void> _showThemeSelector(
                               ),
                       ),
                     ),
-                  ],
+                  ], 
                 ),
               ),
             );
