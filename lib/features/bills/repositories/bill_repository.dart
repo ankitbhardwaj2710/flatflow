@@ -78,12 +78,7 @@ await document.set({
   body: '$title is due today.',
   scheduledDate: dueDate,
 );
-await NotificationService.instance.printPendingNotifications();
-await NotificationService.instance.showInstantNotification(
-  id: 999,
-  title: 'Test Notification',
-  body: 'Instant notification works',
-);
+
 await _activityRepository.addActivity( 
   type: 'bill',
   title: 'Bill Added',
@@ -128,14 +123,10 @@ await NotificationService.instance.scheduleNotification(
   id: NotificationConstants.billNotificationOffset +
       billId.hashCode.abs(),
   title: 'Bill Reminder',
-  body: '$title is due now.',
+  body: '$title is due today.',
   scheduledDate: dueDate,
 );
-await NotificationService.instance.showInstantNotification(
-  id: 999,
-  title: 'Test Notification',
-  body: 'Instant notification works',
-);
+
 await _notificationRepository.addNotification(
   type: 'bill',
   title: 'Bill Updated',
