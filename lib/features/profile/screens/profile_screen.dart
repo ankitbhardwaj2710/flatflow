@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
+import '../../../core/theme/theme_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../../home/providers/home_provider.dart';
@@ -438,13 +438,21 @@ const Divider(height: 1),
 _SettingsTile(
   icon: Icons.dark_mode_outlined,
   title: 'Dark Mode',
-  subtitle: 'Coming Soon',
+  subtitle: 'Switch between light and dark theme',
   onTap: () {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Dark Mode coming soon'),
-      ),
-    );
+    final currentMode =
+        ref.read(themeModeProvider);
+
+    final isDark =
+        currentMode == ThemeMode.dark;
+
+    ref
+        .read(themeModeProvider.notifier)
+        .setTheme(
+          isDark
+              ? ThemeMode.light
+              : ThemeMode.dark,
+        );
   },
 ),
 

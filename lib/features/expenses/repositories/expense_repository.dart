@@ -140,6 +140,12 @@ class ExpenseRepository {
           'note': note.trim(),
           'updatedAt': FieldValue.serverTimestamp(),
         });
+        await _notificationRepository.addNotification(
+  type: 'expense',
+  title: 'Expense Updated',
+  description:
+      '$title • ₹${amount.toStringAsFixed(2)}',
+);
   }
 
   Stream<List<ExpenseModel>> watchExpenses() async* {

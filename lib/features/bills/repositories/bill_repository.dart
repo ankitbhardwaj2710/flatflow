@@ -136,6 +136,12 @@ await NotificationService.instance.showInstantNotification(
   title: 'Test Notification',
   body: 'Instant notification works',
 );
+await _notificationRepository.addNotification(
+  type: 'bill',
+  title: 'Bill Updated',
+  description:
+      '$title • ₹${amount.toStringAsFixed(2)}',
+);
   }
 
  Future<void> togglePaid({
