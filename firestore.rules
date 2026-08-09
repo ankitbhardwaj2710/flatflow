@@ -1,0 +1,270 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ==============================
+    // Helper Functions
+    // ==============================
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    function isFlatMember(flatId) {
+      return signedIn()
+        && exists(
+          /databases/$(database)/documents/flats/$(flatId)/members/$(request.auth.uid)
+        );
+    }
+
+    function isFlatAdmin(flatId) {
+      return signedIn()
+        && get(
+          /databases/$(database)/documents/flats/$(flatId)/members/$(request.auth.uid)
+        ).data.role == 'admin';
+    }
+
+
+    // ==============================
+    // Users
+    // ==============================
+
+    match /users/{userId} {
+
+      allow create: if isOwner(userId);
+
+      allow read: if isOwner(userId);
+
+      allow update: if isOwner(userId);
+
+      allow delete: if false;
+    }
+
+
+    // ==============================
+    // Flat Invite Codes
+    // ==============================
+
+    match /flatInvites/{inviteCode} {
+
+      // User needs to read a specific invite document
+      // when joining a flat.
+      allow get: if signedIn();
+
+      // Listing all invite codes is never allowed.
+      allow list: if false;
+
+      // Invite mapping is created together with the flat.
+      allow create: if signedIn()
+        && request.resource.data.flatId is string
+        && request.resource.data.createdAt != null
+        && getAfter(
+          /databases/$(database)/documents/flats/$(request.resource.data.flatId)
+        ).data.createdBy == request.auth.uid;
+
+      allow update, delete: if false;
+    }
+
+
+    // ==============================
+    // Flats
+    // ==============================
+
+    match /flats/{flatId} {
+
+      // Creating a flat.
+      allow create: if signedIn()
+        && request.resource.data.createdBy == request.auth.uid
+        && request.resource.data.name is string
+        && request.resource.data.inviteCode is string;
+
+      // Only members can read flat information.
+      allow read: if isFlatMember(flatId);
+
+      // Only admin can update/delete flat.
+      allow update, delete: if isFlatAdmin(flatId);
+
+
+      // ============================
+      // Members
+      // ============================
+
+      match /members/{memberId} {
+
+        // Existing members can view members.
+        allow read: if isFlatMember(flatId);
+
+        // Creating your own membership:
+        // - normal invite join
+        // - flat creator becoming admin
+        allow create: if signedIn()
+          && memberId == request.auth.uid
+          && request.resource.data.userId == request.auth.uid
+          && request.resource.data.name is string
+          && request.resource.data.email is string
+          && request.resource.data.role in ['admin', 'member'];
+
+        // Only admin can modify another member.
+        // A user may not change their own role.
+        allow update: if isFlatAdmin(flatId)
+          && request.resource.data.role in ['admin', 'member'];
+
+        allow delete: if isFlatAdmin(flatId);
+      }
+
+
+      // ============================
+      // Expenses
+      // ============================
+
+      match /expenses/{expenseId} {
+
+        allow read: if isFlatMember(flatId);
+
+        allow create: if isFlatMember(flatId)
+          && request.resource.data.createdBy == request.auth.uid
+          && request.resource.data.title is string
+          && request.resource.data.amount is number
+          && request.resource.data.amount > 0
+          && request.resource.data.paidBy is string
+          && request.resource.data.splits is map;
+
+        allow update: if isFlatMember(flatId)
+          && request.resource.data.title is string
+          && request.resource.data.amount is number
+          && request.resource.data.amount > 0
+          && request.resource.data.paidBy is string
+          && request.resource.data.splits is map;
+
+        // FlatFlow currently uses admin-only expense deletion.
+        allow delete: if isFlatAdmin(flatId);
+      }
+
+
+      // ============================
+      // Bills
+      // ============================
+
+      match /bills/{billId} {
+
+        allow read: if isFlatMember(flatId);
+
+        allow create: if isFlatMember(flatId)
+          && request.resource.data.createdBy == request.auth.uid
+          && request.resource.data.title is string
+          && request.resource.data.amount is number
+          && request.resource.data.amount > 0
+          && request.resource.data.isPaid is bool;
+
+        allow update: if isFlatMember(flatId)
+          && request.resource.data.title is string
+          && request.resource.data.amount is number
+          && request.resource.data.amount > 0
+          && request.resource.data.isPaid is bool;
+
+        // FlatFlow currently uses admin-only bill deletion.
+        allow delete: if isFlatAdmin(flatId);
+      }
+
+
+      // ============================
+      // Grocery Items
+      // ============================
+
+      match /groceryItems/{itemId} {
+
+        allow read: if isFlatMember(flatId);
+
+        allow create: if isFlatMember(flatId)
+          && request.resource.data.addedBy == request.auth.uid
+          && request.resource.data.name is string
+          && request.resource.data.isBought is bool;
+
+        allow update: if isFlatMember(flatId)
+          && request.resource.data.name is string
+          && request.resource.data.isBought is bool;
+
+        // Creator OR admin can delete.
+        allow delete: if isFlatMember(flatId)
+          && (
+            resource.data.addedBy == request.auth.uid
+            || isFlatAdmin(flatId)
+          );
+      }
+
+
+      // ============================
+      // Settlements
+      // ============================
+
+      match /settlements/{settlementId} {
+
+        allow read: if isFlatMember(flatId);
+
+        allow create: if isFlatMember(flatId)
+          && request.resource.data.paidBy is string
+          && request.resource.data.paidTo is string
+          && request.resource.data.amount is number
+          && request.resource.data.amount > 0
+          && request.resource.data.paidBy != request.resource.data.paidTo;
+
+        allow update: if isFlatMember(flatId);
+
+        allow delete: if isFlatAdmin(flatId);
+      }
+
+
+      // ============================
+      // Activity
+      // ============================
+
+      match /activity/{activityId} {
+
+        allow read: if isFlatMember(flatId);
+
+        allow create: if isFlatMember(flatId)
+          && request.resource.data.createdBy == request.auth.uid;
+
+        // Activity should be immutable.
+        allow update, delete: if false;
+      }
+
+
+      // ============================
+      // Notifications
+      // ============================
+
+      match /notifications/{notificationId} {
+
+        allow read: if isFlatMember(flatId);
+
+        allow create: if isFlatMember(flatId)
+          && request.resource.data.createdBy == request.auth.uid
+          && request.resource.data.type is string
+          && request.resource.data.title is string
+          && request.resource.data.description is string
+          && request.resource.data.isRead == false;
+
+        // Members can mark their notification as read.
+        allow update: if isFlatMember(flatId);
+
+        // Members can delete notifications.
+        allow delete: if isFlatMember(flatId);
+      }
+    }
+
+
+    // ==============================
+    // Default Deny
+    // ==============================
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
