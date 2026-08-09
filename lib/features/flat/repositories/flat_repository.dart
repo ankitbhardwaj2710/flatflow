@@ -40,12 +40,20 @@ class FlatRepository {
 
     final batch = _firestore.batch();
 
+    final inviteReference = _firestore
+    .collection('flatInvites')
+    .doc(inviteCode);
+
     batch.set(flatReference, {
       'name': flatName.trim(),
       'inviteCode': inviteCode,
       'createdBy': user.uid,
       'createdAt': FieldValue.serverTimestamp(),
     });
+    batch.set(inviteReference, {
+  'flatId': flatReference.id,
+  'createdAt': FieldValue.serverTimestamp(),
+});
 
     batch.set(
       flatReference.collection('members').doc(user.uid),
@@ -104,18 +112,21 @@ Future<String> joinFlat({
 
   final code = inviteCode.trim().toUpperCase();
 
-  final flatQuery = await _firestore
-      .collection('flats')
-      .where('inviteCode', isEqualTo: code)
-      .limit(1)
-      .get();
+  final inviteDocument = await _firestore
+    .collection('flatInvites')
+    .doc(code)
+    .get();
 
-  if (flatQuery.docs.isEmpty) {
-    throw Exception('No flat found with this invite code.');
-  }
+if (!inviteDocument.exists) {
+  throw Exception('No flat found with this invite code.');
+}
 
-  final flatDocument = flatQuery.docs.first;
-  final flatId = flatDocument.id;
+final flatId =
+    inviteDocument.data()?['flatId'] as String?;
+
+if (flatId == null || flatId.isEmpty) {
+  throw Exception('Invalid invite code.');
+}
 
   final userDocument =
       await _firestore.collection('users').doc(user.uid).get();
